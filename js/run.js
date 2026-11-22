@@ -127,7 +127,7 @@ export function startRun(chId, onExit) {
     hero.x = w * 0.34 + (hero.mount ? 10 : 0);
     if (emery) { emery.x = w * 0.13; emery.dy = -4 * u; }
     const slots = hero.mount ? [[-86, 30], [-128, 22], [60, 34]] : [[-46, 34], [44, 36], [-96, 26]];
-    petActors.forEach((p, i) => { p.x = hero.x + slots[i][0] * u; p.dy = slots[i][1] * u * 0.5; p.scale = hero.mount ? 0.82 : 0.95; });
+    petActors.forEach((p, i) => { p.x = Math.max(w * 0.08, hero.x + slots[i][0] * u); p.dy = slots[i][1] * u * 0.5; p.scale = hero.mount ? 0.82 : 0.95; });   // never off the left edge
     if (emery && hero.mount) emery.x = w * 0.1;
     const eSlots = [0.74, 0.88, 0.6];
     scene.actors.filter(a => a.enemy && a.moveTo == null).forEach((a, i) => { a.x = w * eSlots[i % 3]; });

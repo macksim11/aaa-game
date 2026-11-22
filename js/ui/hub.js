@@ -147,7 +147,7 @@ const HOME_SPOTS = {
   alyzee: { ix: 0.3, iy: 0.91 }, eveah: { ix: 0.72, iy: 0.92 },
   arlo: { ix: 0.5, iy: 0.94 },
 };
-const PET_SPOTS = [[0.38, 0.97], [0.62, 0.98], [0.17, 0.95], [0.86, 0.96], [0.27, 0.99], [0.76, 0.99], [0.45, 0.99], [0.56, 0.96], [0.1, 0.99], [0.92, 0.99], [0.5, 1.0]];
+const PET_SPOTS = [[0.22, 0.97], [0.8, 0.98], [0.1, 0.99], [0.92, 0.99], [0.33, 1.0], [0.68, 1.0], [0.16, 0.93], [0.86, 0.94], [0.42, 1.0], [0.58, 1.0], [0.5, 1.0]];
 function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH }) {
   // The room picture fills the area above the chapter card, so its floor is always visible.
   const sh = Math.max(stageH, h * 0.5);
@@ -370,10 +370,10 @@ function menuModal(onReplayIntro) {
     el('button', { class: 'btn blue', onclick: () => { S.settings.music = !S.settings.music; save(); applyAudioSettings(); m.close(); menuModal(onReplayIntro); } }, `🎵 Music: ${S.settings.music ? 'ON' : 'OFF'}`),
     el('button', { class: 'btn blue', onclick: () => { S.settings.sfx = !S.settings.sfx; save(); applyAudioSettings(); m.close(); menuModal(onReplayIntro); } }, `🔊 Sounds: ${S.settings.sfx ? 'ON' : 'OFF'}`),
     el('button', { class: 'btn purple', onclick: () => { m.close(); onReplayIntro(); } }, '🎬 Watch the story again'),
-    el('button', { class: 'btn gold', onclick: () => { m.close(); transferModal(); } }, '📲 Move my save to another device'),
+    el('button', { class: 'btn gold', onclick: () => { m.close(); transferModal(); } }, '📲 Move save to another device'),
     el('button', { class: 'btn gray', onclick: () => { m.close(); statsModal(); } }, '📊 My stats'),
-    el('button', { class: 'btn red small', style: { marginTop: '6px' }, onclick: async () => { m.close(); if (await confirmModal('Start over?', 'This erases ALL progress on this device and starts a brand new game.', 'Erase', 'Cancel') && await confirmModal('Are you SURE?', 'Everything will be gone forever. Belts, gear, pets, rescues... all of it.', 'Yes, erase', 'No!')) wipeAndReload(); } }, 'Start a new game'),
-    el('button', { class: 'btn green', onclick: () => m.close() }, 'Close')));
+    el('button', { class: 'btn green', onclick: () => m.close() }, 'Close'),
+    el('button', { class: 'danger-link', onclick: async () => { m.close(); if (await confirmModal('Start over?', 'This erases ALL progress on this device and starts a brand new game.', 'Erase', 'Cancel') && await confirmModal('Are you SURE?', 'Everything will be gone forever. Belts, gear, pets, rescues... all of it.', 'Yes, erase', 'No!')) wipeAndReload(); } }, 'Start a new game')));
   const m = modal(p, { dismissable: true });
 }
 function statsModal() {

@@ -3,7 +3,7 @@
 // - Pictures, sprites, fonts: cache-first (instant), refreshed quietly in the background.
 //   They live in a separate cache that survives version bumps, so updates don't re-download all art.
 // Bump VERSION when releasing an update.
-const VERSION = 'aaa-v7';
+const VERSION = 'aaa-v8';
 const ASSETS = 'aaa-assets-1';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {

@@ -12,6 +12,15 @@ Checked every screen at iPhone 12 (390×844), iPhone SE (375×667), iPad (820×1
 - **Defeat screen**: Arlo's portrait on top, "1 day" vs "days" grammar, and the first-adventure button no longer wraps onto two lines.
 - **Icons popping in late**: art is cached on the device and all icons preload during the loading screen.
 
+## Second sweep (phone + desktop)
+- Tab bar and adventure buttons now sit at the very bottom edge on every phone (only a small gap is kept for the iPhone home-swipe bar); the selected tab's highlight runs to the edge.
+- Next Day / Battle / Start buttons are bigger (taller, larger text); the skills book button is bigger with a bigger icon and no longer overlaps.
+- The x1/x2/x3 speed button moved to the top-right, so it no longer covers the monsters' health bars.
+- Pets no longer get pushed off the left edge when Arlo is riding.
+- Choice events (e.g. McDonald's) use the full width so 3 options fit without squishing.
+- Menu: shorter labels (no wrapping), Close centred, "Start a new game" is a small separate link so it isn't tapped by accident.
+- Hub: pets stand beside Arlo instead of on top of his ride.
+
 ## Ideas for later (not done yet)
 - **Victory screen**: give it the same portrait treatment, plus confetti.
 - **Boss intro card**: a quick "VS" splash with the boss's name before boss fights (the art already exists).
