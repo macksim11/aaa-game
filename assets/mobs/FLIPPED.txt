@@ -1,0 +1,19 @@
+Frames below were mirrored to face LEFT (toward Arlo):
+zombie
+skeleton
+spider
+slime
+baby_zombie
+cave_spider
+silverfish
+witch
+pillager
+vindicator
+enderman
+micro_manager
+iron_golem
+drowned
+guardian
+piglin
+wither_skel
+Not flipped (already facing left or front-facing): creeper blaze magma_cube

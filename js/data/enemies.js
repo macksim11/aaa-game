@@ -1,0 +1,37 @@
+// Base enemy stats (Chapter 1 scale). Chapter multipliers are applied in chapters.js
+// abilities: explode, heal, poison, dodge, fireball, sonic, kragle, summon, shieldBash, splash, charge
+export const ENEMIES = {
+  zombie:        { name: 'Zombie', art: 'zombie', hp: 105, atk: 15, def: 2, intro: ['A [r:Zombie] shuffles out of the bushes, groaning about brains.', 'A [r:Zombie] in a Habs jersey blocks the path. Wrong team, buddy!'] },
+  baby_zombie:   { name: 'Baby Zombie', art: 'baby_zombie', hp: 60, atk: 14, def: 0, abilities: { dodge: 0.2 }, intro: ['A tiny, super fast [r:Baby Zombie] zooms at you!'] },
+  slime:         { name: 'Slime', art: 'slime', hp: 70, atk: 11, def: 0, group: [2, 3], intro: ['A group of bouncy [r:Slimes] blocks the road. Boing boing.'] },
+  spider:        { name: 'Spider', art: 'spider', hp: 85, atk: 18, def: 1, intro: ['A big [r:Spider] drops down from a tree!', 'Hissss... a [r:Spider] with glowing red eyes.'] },
+  cave_spider:   { name: 'Cave Spider', art: 'cave_spider', hp: 70, atk: 14, def: 1, group: [2, 2], abilities: { poison: 0.35 }, intro: ['Two blue [r:Cave Spiders] skitter out of the dark. Watch out for poison!'] },
+  skeleton:      { name: 'Skeleton', art: 'skeleton', hp: 90, atk: 19, def: 1, intro: ['A [r:Skeleton] aims its bow at you. Rattle rattle.', 'An eerie [r:Skeleton] approaches, its arrows clearly not meant for friendly conversation.'] },
+  creeper:       { name: 'Creeper', art: 'creeper', hp: 95, atk: 9, def: 1, abilities: { explode: 3 }, intro: ['Tsssss... A [r:Creeper] sneaks up behind you! Beat it before it blows!'] },
+  micro_manager: { name: 'Micro Manager', art: 'micro_manager', hp: 125, atk: 17, def: 4, intro: ["A [r:Micro Manager] robot beeps: 'YOU ARE NOT FOLLOWING THE INSTRUCTIONS.'"] },
+  pillager:      { name: 'Pillager', art: 'pillager', hp: 115, atk: 21, def: 2, intro: ['A grumpy [r:Pillager] with a crossbow says nothing. Just frowns.'] },
+  silverfish:    { name: 'Silverfish', art: 'silverfish', hp: 45, atk: 10, def: 0, group: [3, 3], intro: ['Ew! Three [r:Silverfish] wiggle out of the metro walls!'] },
+  witch:         { name: 'Witch', art: 'witch', hp: 140, atk: 20, def: 2, abilities: { heal: 0.12 }, intro: ['A cackling [r:Witch] throws potions at you!'] },
+  enderman:      { name: 'Enderman', art: 'enderman', hp: 160, atk: 26, def: 3, abilities: { dodge: 0.18 }, intro: ['A tall [r:Enderman] stares at you. Oops. You looked at it.'] },
+  drowned:       { name: 'Drowned', art: 'drowned', hp: 120, atk: 20, def: 2, intro: ['A soggy [r:Drowned] climbs out of the wave pool with a trident!'] },
+  guardian:      { name: 'Guardian', art: 'guardian', hp: 110, atk: 22, def: 4, abilities: { thorns: 0.1 }, intro: ['A spiky [r:Guardian] fish flops toward you. Its laser eye is charging!'] },
+  blaze:         { name: 'Blaze', art: 'blaze', hp: 110, atk: 18, def: 2, abilities: { fireball: 3 }, intro: ['A [r:Blaze] spins in the air, crackling with fire!'] },
+  piglin:        { name: 'Piglin', art: 'piglin', hp: 130, atk: 22, def: 3, intro: ['A [r:Piglin] snorts. It only wants gold. You have no gold for it.'] },
+  magma_cube:    { name: 'Magma Cube', art: 'magma_cube', hp: 90, atk: 16, def: 3, group: [2, 3], intro: ['Hot [r:Magma Cubes] bounce out of a lava puddle at La Ronde!'] },
+  wither_skel:   { name: 'Wither Skeleton', art: 'wither_skel', hp: 150, atk: 28, def: 4, abilities: { poison: 0.25 }, intro: ['A tall black [r:Wither Skeleton] swings a stone sword.'] },
+  vindicator:    { name: 'Vindicator', art: 'vindicator', hp: 150, atk: 30, def: 3, intro: ['A [r:Vindicator] with an axe yells something rude.'] },
+  // ---- elites ----
+  zombie_brute:  { name: 'Zombie Brute', art: 'zombie', scale: 1.35, hp: 105, atk: 15, def: 3, elite: true, intro: ['A HUGE [r:Zombie Brute] crashes through a fence!'] },
+  iron_golem:    { name: 'Corrupted Iron Golem', art: 'iron_golem', hp: 130, atk: 18, def: 5, elite: true, abilities: { charge: 3 }, intro: ['President Business built an evil [r:Iron Golem]. It is NOT here to hand out flowers.'] },
+  // ---- bosses ----
+  king_creeper:  { name: 'King Creeper', art: 'creeper', scale: 1.6, crown: true, hp: 105, atk: 15, def: 3, boss: true, abilities: { bomb: 3 }, intro: ['The [r:KING CREEPER] guards Mom in a cage! Every 3 rounds he drops a TNT bomb!'] },
+  skeleton_general:{ name: 'Skeleton General', art: 'skeleton', scale: 1.5, crown: true, hp: 105, atk: 16, def: 3, boss: true, abilities: { volley: 3 }, intro: ['The [r:SKELETON GENERAL] guards Papa! He fires arrow volleys every 3 rounds!'] },
+  ender_king:    { name: 'Ender King', art: 'enderman', scale: 1.4, crown: true, hp: 110, atk: 17, def: 3, boss: true, abilities: { dodge: 0.2, teleport: 4 }, intro: ['The [r:ENDER KING] holds Alyzée high above Mount Royal! Do NOT look him in the eyes!'] },
+  warden:        { name: 'The Warden', art: 'warden', scale: 1.35, hp: 120, atk: 17, def: 4, boss: true, abilities: { sonic: 4 }, intro: ['The [r:WARDEN] rises from the deepest metro tunnel. It is guarding Évéah. SHHHH... too late.'] },
+  bad_cop:       { name: 'Bad Cop', art: 'bad_cop', scale: 1.3, hp: 115, atk: 18, def: 4, boss: true, abilities: { goodcop: 4 }, intro: ["[r:BAD COP] guards Emery at the Olympic Stadium! 'Good cop, bad cop... it's ALL bad cop today!'"] },
+  toasty:        { name: 'Toasty', art: 'toasty', scale: 1.3, hp: 120, atk: 18, def: 4, boss: true, abilities: { fireball: 3 }, intro: ['[r:TOASTY] has taken over Terry Fox School! He says recess is cancelled. FOREVER.'] },
+  elder_guardian:{ name: 'Elder Guardian', art: 'guardian', scale: 1.7, crown: true, hp: 125, atk: 18, def: 5, boss: true, abilities: { thorns: 0.15, laser: 3 }, intro: ['The [r:ELDER GUARDIAN] blocks the biggest water slide. Mining fatigue incoming!'] },
+  ghast:         { name: 'Ghast', art: 'ghast', scale: 1.3, hp: 120, atk: 19, def: 4, boss: true, abilities: { fireball: 2 }, intro: ['A giant crying [r:GHAST] floats over La Ronde, shooting fireballs!'] },
+  malgosha:      { name: 'Malgosha', art: 'malgosha', scale: 1.35, hp: 130, atk: 20, def: 5, boss: true, abilities: { orb: 3, heal: 0.08 }, intro: ['[r:MALGOSHA], President Business\'s second-in-command, raises the Staff of Dominance!'] },
+  president_business:{ name: 'President Business', art: 'president_business', scale: 1.35, hp: 140, atk: 21, def: 6, boss: true, abilities: { kragle: 4, summon: 5 }, intro: ['[r:PRESIDENT BUSINESS]: "You? A nine-year-old? You can\'t stop me! I have the KRAGLE!"'] },
+};

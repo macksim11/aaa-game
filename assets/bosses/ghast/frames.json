@@ -1,0 +1,59 @@
+{
+ "refHeight": 300,
+ "anims": {
+  "idle": [
+   {
+    "f": "idle_0.webp",
+    "w": 232,
+    "h": 286
+   },
+   {
+    "f": "idle_1.webp",
+    "w": 245,
+    "h": 294
+   }
+  ],
+  "taunt": [
+   {
+    "f": "taunt_0.webp",
+    "w": 296,
+    "h": 281
+   }
+  ],
+  "charge": [
+   {
+    "f": "charge_0.webp",
+    "w": 308,
+    "h": 281
+   }
+  ],
+  "special": [
+   {
+    "f": "special_0.webp",
+    "w": 495,
+    "h": 294
+   }
+  ],
+  "attack": [
+   {
+    "f": "attack_0.webp",
+    "w": 361,
+    "h": 294
+   }
+  ],
+  "hurt": [
+   {
+    "f": "hurt_0.webp",
+    "w": 313,
+    "h": 297
+   }
+  ],
+  "down": [
+   {
+    "f": "down_0.webp",
+    "w": 291,
+    "h": 277
+   }
+  ]
+ }
+}

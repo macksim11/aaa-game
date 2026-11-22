@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Art test</title>
+<style>body{margin:0;background:#333}canvas{display:block}</style></head><body>
+<canvas id="c" width="1000" height="1100"></canvas>
+<script type="module">
+import { drawPerson } from '../js/art/people.js';
+import { drawPet } from '../js/art/animals.js';
+import { drawMob } from '../js/art/mobs.js';
+import { drawMount } from '../js/art/mounts.js';
+import { drawBackground } from '../js/art/backgrounds.js';
+import { FAMILY } from '../js/data/family.js';
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+function frame(ms){
+  const t = ms/1000;
+  ctx.fillStyle='#cfe8f5'; ctx.fillRect(0,0,1000,1100);
+  drawBackground(ctx,'river',1000,260,t*40,t);
+  const arlo = {...FAMILY.arlo.look, shirt:{style:'tribal',color:'#2b3550'}, pants:{style:'shorts',color:'#5d6f80'}, hat:{style:'none'}, beltColor:'#ffd400'};
+  drawPerson(ctx,60,240,1.5,arlo,{t, walk:t*8});
+  const fam = ['mom','papa','alyzee','eveah','emery','nana','papi'];
+  fam.forEach((k,i)=>drawPerson(ctx,180+i*115,520,1.5,FAMILY[k].look,{t}));
+  drawPerson(ctx,60,520,1.5,arlo,{t, attack: (Math.sin(t*3)+1)/2, weapon:'diamond_sword'});
+  ['twyla','lenny','goose','marah','tobi','zuko','wolf','axolotl','pikachu','eevee','charizard'].forEach((k,i)=>drawPet(ctx,k,50+i*88,640,1.3,{t, walk: t*8}));
+  const mobs=['zombie','skeleton','creeper','spider','slime','micro_manager','pillager','enderman','witch','iron_golem','warden'];
+  mobs.forEach((k,i)=>drawMob(ctx,k,50+i*88,830,1,{t,facing:-1}));
+  const mobs2=['bad_cop','president_business','toasty','malgosha','ghast','guardian','blaze','piglin','magma_cube','wither_skel','silverfish','drowned'];
+  mobs2.forEach((k,i)=>drawMob(ctx,k,50+i*82,1000,0.9,{t,facing:-1,crown:k==='guardian'}));
+  ['bike','horse','hippo','car','golfcart','chicken','pig','camel','ebike'].forEach((k,i)=>{ const seat=drawMount(ctx,k,60+i*108,1090,0.9,{t,moving:true}); });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>

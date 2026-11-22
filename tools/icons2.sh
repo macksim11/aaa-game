@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$(dirname "$0")/.."
+ST="Mobile game item icon sheet in a cute chunky cartoon style matching the reference (thick dark-brown outlines, bright saturated flat colors, soft cel shading, glossy highlights), like a polished casual mobile RPG inventory. Transparent background. Exactly 4 rows x 5 columns of separate icons, evenly spaced on a grid, each centered in its cell, no overlap. No text, no letters, no numbers."
+gen(){ name=$1; prompt=$2
+  url=$(higgsfield generate create gpt_image_2_6 --quality high --resolution 2k --aspect_ratio 5:4 --background transparent --image-references art-gen/style-ref.png --prompt "$prompt" --wait 2>&1 | grep -Eo 'https://[^ ]+\.(png|webp)' | tail -1)
+  [ -n "$url" ] && curl -sSL -o art-gen/raw/$name.png "$url" && echo "$(date +%H:%M) OK $name $url" >> art-gen/log.txt && echo "OK $name" || echo "FAIL $name"; }
+gen icons_gear1 "$ST Icons in reading order: 1 Minecraft-style wooden sword, 2 wooden bo staff, 3 black nunchucks, 4 Minecraft-style stone sword, 5 hockey stick with red-white-blue tape, 6 Minecraft-style iron sword, 7 Minecraft-style diamond pickaxe, 8 Minecraft-style diamond sword, 9 dark netherite sword, 10 white karate gi jacket, 11 cozy purple hoodie, 12 brown leather tunic, 13 iron chestplate, 14 diamond chestplate, 15 red boxing sparring gloves, 16 hockey goalie glove, 17 red dragon hand wraps, 18 soccer cleats, 19 water-park flip-flops, 20 black kung fu slippers." &
+gen icons_gear2 "$ST Icons in reading order: 1 diamond boots, 2 golden hamburger pendant necklace, 3 ender pearl necklace (teal glowing orb), 4 gold kung fu medal, 5 ring with a tiny pinball, 6 emerald ring, 7 golden totem ring, 8 LEGO brick, 9 glue bottle, 10 poutine in a box, 11 sesame bagel, 12 blue slushie cup, 13 pair of dice, 14 golden trophy, 15 golden crown, 16 horseshoe, 17 purple potion bottle, 18 maple taffy on a stick, 19 soccer goal net, 20 wishing fountain." &
+wait

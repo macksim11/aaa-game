@@ -1,0 +1,31 @@
+{
+ "refHeight": 220,
+ "anims": {
+  "idle": [
+   {
+    "f": "idle_0.webp",
+    "w": 102,
+    "h": 217
+   },
+   {
+    "f": "idle_1.webp",
+    "w": 98,
+    "h": 209
+   }
+  ],
+  "attack": [
+   {
+    "f": "attack_0.webp",
+    "w": 142,
+    "h": 198
+   }
+  ],
+  "hurt": [
+   {
+    "f": "hurt_0.webp",
+    "w": 118,
+    "h": 190
+   }
+  ]
+ }
+}

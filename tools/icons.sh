@@ -1,0 +1,11 @@
+#!/bin/bash
+# Icon sheets with transparent backgrounds (GPT Image 2.6, 2 credits each)
+cd "$(dirname "$0")/.."
+ST="Mobile game UI icon sheet in a cute chunky cartoon style matching the reference (thick dark-brown outlines, bright saturated flat colors, soft cel shading, glossy highlights), like icons from a polished casual mobile RPG. Transparent background. Exactly 4 rows x 5 columns of separate icons, evenly spaced on a grid, each icon centered in its cell, no overlap. No text, no letters, no numbers, no labels."
+gen(){ name=$1; prompt=$2
+  url=$(higgsfield generate create gpt_image_2_6 --quality high --resolution 2k --aspect_ratio 5:4 --background transparent --image-references art-gen/style-ref.png --prompt "$prompt" --wait 2>&1 | grep -Eo 'https://[^ ]+\.(png|webp)' | tail -1)
+  [ -n "$url" ] && curl -sSL -o art-gen/raw/$name.png "$url" && echo "$(date +%H:%M) OK $name $url" >> art-gen/log.txt && echo "OK $name" || echo "FAIL $name"; }
+gen icons_ui "$ST Icons in reading order: 1 shopping cart, 2 red backpack, 3 cozy house, 4 paw print, 5 karate belt (white gi with black belt), 6 t-shirt, 7 purple scooter, 8 menu list with three lines, 9 gift box with red bow, 10 frying pan with an egg, 11 pinball machine, 12 gold coin, 13 purple gem, 14 dog bone, 15 spotted egg, 16 wooden chest, 17 golden chest, 18 diamond chest, 19 settings gear, 20 open spell book." &
+gen icons_skill1 "$ST Icons in reading order: 1 ninja throwing star, 2 two throwing stars, 3 green heart, 4 angry red face, 5 lightning bolt, 6 soccer ball, 7 soccer ball with motion trail, 8 thunder cloud, 9 punching fist, 10 iron shield, 11 big hamburger, 12 karate kick, 13 circular arrows, 14 target bullseye, 15 explosion burst, 16 sneaker with wings, 17 wind swirl, 18 french fries, 19 gold coins stack, 20 stack of books." &
+gen icons_skill2 "$ST Icons in reading order: 1 flaming fist, 2 ice crystal hand, 3 green poison skull, 4 steam angry face, 5 orange dragon head, 6 blue bubble shield, 7 vampire fangs, 8 magic sparkles, 9 red belt, 10 ancient scroll, 11 diamond, 12 TNT block, 13 film clapperboard, 14 pinball flipper, 15 ice block, 16 tornado, 17 castle tower, 18 two shadow ninjas, 19 pink heart with plus, 20 golden star burst." &
+wait

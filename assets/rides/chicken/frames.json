@@ -1,0 +1,24 @@
+{
+ "refHeight": 260,
+ "anims": {
+  "ride": [
+   {
+    "f": "ride_0.webp",
+    "w": 160,
+    "h": 256
+   },
+   {
+    "f": "ride_1.webp",
+    "w": 169,
+    "h": 250
+   }
+  ],
+  "charge": [
+   {
+    "f": "charge_0.webp",
+    "w": 201,
+    "h": 235
+   }
+  ]
+ }
+}
