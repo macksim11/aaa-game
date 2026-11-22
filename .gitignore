@@ -7,3 +7,7 @@ sprites/raw/
 tools/sim/node_modules/
 tools/sim/out_*.json
 tools/doctor/.sim.mjs
+tools/doctor/node_modules/
+tools/doctor/report/
+tools/doctor/.sim.mjs
+tools/doctor/package-lock.json
