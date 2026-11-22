@@ -13,12 +13,13 @@ DOC = os.path.join(ROOT, 'tools/doctor')
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 6
 TRIES = (1.8, 12.0)          # allowed average tries per chapter
 TOTAL = (28, 110)            # allowed average adventures for the whole game
-shutil.copy(os.path.join(ROOT, 'tools/sim/sim.mjs'), os.path.join(DOC, '.sim.mjs'))   # so it finds jsdom in tools/doctor/node_modules
+RUNDIR = os.path.join(os.environ.get('DOCTOR_HOME', DOC), '.cache'); os.makedirs(RUNDIR, exist_ok=True)
+shutil.copy(os.path.join(ROOT, 'tools/sim/sim.mjs'), os.path.join(RUNDIR, 'sim-aaa.mjs'))   # runs where jsdom is installed
 
 def play(args):
     seed, policy = args
     env = dict(os.environ, GAME=ROOT, SEED=str(seed), POLICY=policy, MAX_RUNS='260')
-    out = subprocess.run(['node', os.path.join(DOC, '.sim.mjs')], env=env, capture_output=True, text=True, timeout=1200).stdout
+    out = subprocess.run(['node', os.path.join(RUNDIR, 'sim-aaa.mjs')], env=env, capture_output=True, text=True, timeout=1200).stdout
     try: return policy, json.loads(out[out.index('{'):])
     except Exception: return policy, {'report': [], 'runs': 0, 'finished': False, 'errors': ['simulator crashed: ' + out[-300:]]}
 

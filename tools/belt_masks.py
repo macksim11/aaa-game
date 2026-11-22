@@ -64,6 +64,12 @@ def run(D):
           name = 'belt_' + fr['f']
           Image.fromarray(mask).save(f'{D}/{name}', 'WEBP', quality=90, lossless=True)
           fr['belt'] = name
+  for anim, frames in j['anims'].items():
+      for fr in frames:
+          if 'belt' in fr:
+              bm = np.array(Image.open(f"{D}/{fr['belt']}"))[..., 3] > 0
+              if bm.any():
+                  ys, xs = np.nonzero(bm); fr['beltC'] = [round(xs.mean() / bm.shape[1], 3), round(ys.mean() / bm.shape[0], 3)]
   json.dump(j, open(f'{D}/frames.json', 'w'), indent=1)
 dirs = sys.argv[1:] or ['assets/chars/arlo']
 for d in dirs: run(d)

@@ -7,21 +7,33 @@
     "w": 195,
     "h": 285,
     "beltAlways": 1,
-    "belt": "belt_idle_0.webp"
+    "belt": "belt_idle_0.webp",
+    "beltC": [
+     0.54,
+     0.801
+    ]
    },
    {
     "f": "idle_1.webp",
     "w": 194,
     "h": 285,
     "beltAlways": 1,
-    "belt": "belt_idle_1.webp"
+    "belt": "belt_idle_1.webp",
+    "beltC": [
+     0.539,
+     0.801
+    ]
    },
    {
     "f": "idle_2.webp",
     "w": 194,
     "h": 285,
     "beltAlways": 1,
-    "belt": "belt_idle_2.webp"
+    "belt": "belt_idle_2.webp",
+    "beltC": [
+     0.554,
+     0.801
+    ]
    }
   ],
   "victory": [
@@ -30,7 +42,11 @@
     "w": 229,
     "h": 294,
     "beltAlways": 1,
-    "belt": "belt_victory_0.webp"
+    "belt": "belt_victory_0.webp",
+    "beltC": [
+     0.544,
+     0.802
+    ]
    }
   ],
   "run": [
@@ -39,28 +55,44 @@
     "w": 188,
     "h": 280,
     "beltAlways": 1,
-    "belt": "belt_run_0.webp"
+    "belt": "belt_run_0.webp",
+    "beltC": [
+     0.38,
+     0.785
+    ]
    },
    {
     "f": "run_1.webp",
     "w": 235,
     "h": 279,
     "beltAlways": 1,
-    "belt": "belt_run_1.webp"
+    "belt": "belt_run_1.webp",
+    "beltC": [
+     0.391,
+     0.743
+    ]
    },
    {
     "f": "run_2.webp",
     "w": 205,
     "h": 280,
     "beltAlways": 1,
-    "belt": "belt_run_2.webp"
+    "belt": "belt_run_2.webp",
+    "beltC": [
+     0.4,
+     0.754
+    ]
    },
    {
     "f": "run_3.webp",
     "w": 200,
     "h": 278,
     "beltAlways": 1,
-    "belt": "belt_run_3.webp"
+    "belt": "belt_run_3.webp",
+    "beltC": [
+     0.37,
+     0.754
+    ]
    }
   ],
   "punch": [
@@ -69,7 +101,11 @@
     "w": 210,
     "h": 281,
     "beltAlways": 1,
-    "belt": "belt_punch_0.webp"
+    "belt": "belt_punch_0.webp",
+    "beltC": [
+     0.47,
+     0.785
+    ]
    }
   ],
   "kick": [
@@ -78,7 +114,11 @@
     "w": 254,
     "h": 269,
     "beltAlways": 1,
-    "belt": "belt_kick_0.webp"
+    "belt": "belt_kick_0.webp",
+    "beltC": [
+     0.563,
+     0.773
+    ]
    }
   ],
   "hurt": [
@@ -87,7 +127,11 @@
     "w": 215,
     "h": 273,
     "beltAlways": 1,
-    "belt": "belt_hurt_0.webp"
+    "belt": "belt_hurt_0.webp",
+    "beltC": [
+     0.372,
+     0.761
+    ]
    }
   ],
   "down": [
@@ -96,7 +140,11 @@
     "w": 289,
     "h": 181,
     "beltAlways": 1,
-    "belt": "belt_down_0.webp"
+    "belt": "belt_down_0.webp",
+    "beltC": [
+     0.312,
+     0.824
+    ]
    }
   ]
  }

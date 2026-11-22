@@ -7,14 +7,22 @@
     "w": 207,
     "h": 256,
     "beltAlways": 1,
-    "belt": "belt_ride_0.webp"
+    "belt": "belt_ride_0.webp",
+    "beltC": [
+     0.345,
+     0.496
+    ]
    },
    {
     "f": "ride_1.webp",
     "w": 236,
     "h": 251,
     "beltAlways": 1,
-    "belt": "belt_ride_1.webp"
+    "belt": "belt_ride_1.webp",
+    "beltC": [
+     0.42,
+     0.507
+    ]
    }
   ],
   "charge": [
@@ -23,7 +31,11 @@
     "w": 261,
     "h": 253,
     "beltAlways": 1,
-    "belt": "belt_charge_0.webp"
+    "belt": "belt_charge_0.webp",
+    "beltC": [
+     0.481,
+     0.495
+    ]
    }
   ]
  }
