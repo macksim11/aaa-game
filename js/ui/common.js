@@ -49,11 +49,13 @@ export function infoModal(title, bodyHtml, btn = 'OK', color = 'green') {
 }
 export function confirmModal(title, bodyHtml, yes = 'Yes', no = 'No') {
   return new Promise(res => {
+    // resolve BEFORE closing: closing fires onClose, which would otherwise answer "No" first
+    let answered = false; const answer = v => { if (answered) return; answered = true; res(v); };
     const p = el('div', { class: 'panel' }, el('h2', {}, title), el('div', { html: bodyHtml, style: { fontWeight: 600, textAlign: 'center' } }),
       el('div', { style: { display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '14px' } },
-        el('button', { class: 'btn gray small', onclick: () => { m.close(); res(false); } }, no),
-        el('button', { class: 'btn red small', onclick: () => { m.close(); res(true); } }, yes)));
-    const m = modal(p, { dismissable: true, onClose: () => res(false) });
+        el('button', { class: 'btn gray small', onclick: () => { answer(false); m.close(); } }, no),
+        el('button', { class: 'btn green small', onclick: () => { sfx('click'); answer(true); m.close(); } }, yes)));
+    const m = modal(p, { dismissable: true, onClose: () => answer(false) });
   });
 }
 

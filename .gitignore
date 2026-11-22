@@ -4,3 +4,5 @@ reference/
 art-gen/
 sprites/raw/
 *.psd
+tools/sim/node_modules/
+tools/sim/out_*.json

@@ -13,13 +13,30 @@ export function loadSheet(key) {
     if (!j) return null;
     const anims = {};
     await Promise.all(Object.entries(j.anims).map(async ([name, list]) => {
-      anims[name] = await Promise.all(list.map(fr => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = base + fr.f; })));
+      anims[name] = await Promise.all(list.map(fr => new Promise(res => {
+        const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = base + fr.f;
+        if (fr.belt) { const bm = new Image(); bm.onload = () => { im.belt = bm; }; bm.src = base + fr.belt; }  // recolourable belt mask
+      })));
       anims[name] = anims[name].filter(Boolean);
     }));
     SHEETS[key] = { refHeight: j.refHeight || 300, anims };
     return SHEETS[key];
   }).catch(() => null);
   return LOADING[key];
+}
+// ---- Arlo's belt colour (repaints the white belt on his sprite) ----
+let BELT_COLOR = null; const TINTS = new Map();
+export function setBeltColor(c) { BELT_COLOR = c && c.toLowerCase() !== '#f4f4f4' ? c : null; }
+function beltTint(img) {
+  const key = img.src + '|' + BELT_COLOR; let c = TINTS.get(key);
+  if (c) return c;
+  c = document.createElement('canvas'); c.width = img.belt.naturalWidth; c.height = img.belt.naturalHeight;
+  const x = c.getContext('2d');
+  x.drawImage(img.belt, 0, 0);
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = BELT_COLOR; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'destination-in'; x.drawImage(img.belt, 0, 0);
+  if (/^#(1|2)/.test(BELT_COLOR)) { x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.18; x.drawImage(img.belt, 0, 0); } // keep a little shine on dark belts
+  TINTS.set(key, c); return c;
 }
 export function preloadSheets(keys) { return Promise.all(keys.map(loadSheet)); }
 
@@ -83,6 +100,7 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   if (!opts.noShadow) { ctx.save(); ctx.globalAlpha *= 0.2; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(0, 0, Math.min(w, h * 0.9) * 0.4, h * 0.06, 0, 0, 7); ctx.fill(); ctx.restore(); }
   if (opts.filter) ctx.filter = opts.filter;
   ctx.drawImage(img, -w / 2, -ih, w, ih);
+  if (img.belt && BELT_COLOR && opts.belt !== false && key === 'chars/arlo') ctx.drawImage(beltTint(img), -w / 2, -ih, w, ih);
   if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(-w / 2, -ih, w, ih); }
   ctx.restore();
   return true;

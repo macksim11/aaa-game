@@ -1,5 +1,5 @@
 import { el, rich, fmt, toast, today, uid, pick, weighted, sleep, icon } from '../util.js';
-import { S, save, exportCode, importCode, resetSave } from '../state.js';
+import { S, save, exportCode, importCode, resetSave, wipeAndReload } from '../state.js';
 import { heroStats, beltInfo, talentCost, TALENT_GAIN, BELTS, PER_BELT, petSlots, PET_SLOT_BELTS, rescued } from '../stats.js';
 import { CHAPTERS, chapterById } from '../data/chapters.js';
 import { FAMILY, RESCUE_ORDER, PAPI_MEALS } from '../data/family.js';
@@ -16,6 +16,8 @@ import { drawAnim, sheetReady, preloadSheets, spriteHeight, bgImage } from '../a
 import { modal, infoModal, confirmModal, iconCanvas, gearIcon, rewardChips, canvasBox } from './common.js';
 import { sfx, playMusic, applyAudioSettings } from '../audio.js';
 import { playPinball } from './pinball.js';
+import { runTour } from './tutorial.js';
+import { BAL } from '../data/balance.js';
 
 let tab = 'home';
 let ctxHub = null;
@@ -26,20 +28,51 @@ export function showHub(opts = {}) {
   playMusic('hub');
   const root = document.getElementById('screen'); root.innerHTML = '';
   const st = heroStats(); const belt = beltInfo();
-  const avatar = el('div', { class: 'avatar' }, canvasBox(44, 44, (ctx, w, h) => { if (!drawAnim(ctx, 'chars/arlo', 'idle', w / 2, h * 2.55, h * 2.7, { frame: 0, noShadow: true })) drawPerson(ctx, w / 2 - 2, h + 22, 0.62, arloLook(S, belt.color), { t: 0, noShadow: true }); }, true));
+  const avatar = el('div', { class: 'avatar' }, canvasBox(44, 44, (ctx, w, h) => { if (!drawAnim(ctx, 'chars/arlo', 'idle', w / 2 + 1, h * 1.95, h * 2.05, { frame: 0, noShadow: true, belt: false })) drawPerson(ctx, w / 2 - 2, h + 22, 0.62, arloLook(S, belt.color), { t: 0, noShadow: true }); }, true));
   const top = el('div', { class: 'topbar' },
     el('div', { class: 'who' }, avatar, el('div', {}, el('div', { class: 'nm' }, S.name), el('div', { class: 'belt' }, el('span', { class: 'belt-swatch', style: { background: belt.color } }), belt.name), el('div', { class: 'power' }, '⚡', fmt(st.power)))),
     el('div', { class: 'cur' }, icon('coin', 20, '🪙'), ' ', fmt(S.coins)), el('div', { class: 'cur' }, icon('gem', 20, '💎'), ' ', fmt(S.gems)));
   const body = el('div', { class: 'tab-body' });
   const tabs = [['shop', '🛒', 'Shop', 'shop'], ['gear', '🎒', 'Gear', 'gear'], ['home', '🏠', 'Home', 'home'], ['pets', '🐾', 'Pets', 'pets'], ['belts', '🥋', 'Belts', 'belts']];
+  const isOpen = id => S.tut.stage === 'done' || S.tut.open.includes(id);
+  if (!isOpen(tab)) tab = 'home';
   const nav = el('div', { class: 'navbar' }, ...tabs.map(([id, ic, nm, ik]) => {
-    const b = el('button', { class: tab === id ? 'on' : '', onclick: () => { sfx('click'); tab = id; showHub(opts); } }, el('span', { class: 'ic' }, icon(ik, 30, ic)), nm);
+    const open = isOpen(id);
+    const b = el('button', { 'data-tab': id, class: (tab === id ? 'on' : '') + (open ? '' : ' locked'), onclick: () => { sfx('click'); if (!open) return toast('Locked! Nana will show you soon.'); tab = id; showHub(opts); } }, el('span', { class: 'ic' }, icon(ik, 30, ic)), nm);
+    if (!open) { b.append(el('span', { class: 'lockbadge' }, icon('lock', 22))); return b; }
     if (id === 'belts' && S.coins >= talentCost()) b.append(el('span', { class: 'dot' }));
     if (id === 'pets' && Object.keys(S.pets.owned).some(p => S.petFood >= petLevelCost(S.pets.owned[p].level) && S.pets.owned[p].level < PET_MAX_LEVEL)) b.append(el('span', { class: 'dot' }));
     return b;
   }));
   root.append(el('div', { class: 'hub tab-' + tab }, top, body, nav));
   ({ home: homeTab, gear: gearTab, pets: petsTab, belts: beltsTab, shop: shopTab }[tab])(body, opts);
+  if (S.tut.stage === 'tour' && !tourRunning) startTour();
+}
+let tourRunning = false;
+// First visit home (after the first adventure): Nana shows every tab, unlocking them one by one.
+async function startTour() {
+  tourRunning = true;
+  const openTab = id => { if (!S.tut.open.includes(id)) S.tut.open.push(id); save(); refresh(); };
+  const steps = [
+    { sel: '.home-scene canvas', pad: -4, text: "Oh sweetheart, you're back! Those minions were tough... but every hero gets knocked down sometimes. Welcome to <b>our house</b>, your base camp!" },
+    { sel: '.topbar .cur', text: 'You brought home <b>coins</b> from your adventure! The further you get, the more you earn. Let me show you how to use them.' },
+    { before: () => openTab('belts'), sel: '.navbar [data-tab=belts]', tap: true, text: 'I just unlocked your <b>Belts</b>! Tap it.' },
+    { sel: '.upg-cards', tap: () => S.coins >= talentCost(), tapSel: '.upg-cards .btn', text: 'Train here with coins: <b>Health</b>, <b>Power</b> and <b>Guard</b>. Every training makes you stronger forever. Try one, tap a gold button!' },
+    { sel: '.belt-big', text: 'Every <b>12 trainings</b> you earn the next belt: Yellow, Orange, Green, all the way to <b>Black Belt</b>! Your belt changes colour and every belt adds +4% to everything.' },
+    { before: () => { if (!S.tut.chestGiven) { S.tut.chestGiven = true; S.freeChest = true; } openTab('shop'); }, sel: '.navbar [data-tab=shop]', tap: true, text: 'Now the <b>Shop</b> is open too. Tap it!' },
+    { skipIf: () => !S.freeChest, sel: '.shop-card .btn.gold', tap: true, text: 'Chests have <b>gear</b> inside: weapons, gis, gloves and more. Papi already paid for your first one. Tap <b>FREE</b>!' },
+    { before: () => openTab('gear'), sel: '.navbar [data-tab=gear]', tap: true, text: 'Ooh, nice! Let\'s see it on you. Tap <b>Gear</b>.' },
+    { sel: '.slots', text: 'New gear goes on Arlo by itself. Tap any item to <b>Enhance</b> it with coins. And if you collect <b>3 of the same</b> item, they <b>merge</b> into a better one!' },
+    { before: () => openTab('pets'), sel: '.navbar [data-tab=pets]', tap: true, text: 'Last one: <b>Pets</b>! Tap it.' },
+    { sel: '.tab-body .section', pad: -2, text: 'President Business took all the pets too! When you rescue them, they live here. Put them on your <b>team</b> to fight with you, and feed them <b>pet food</b> to level them up. Your <b>Rides</b> are in here too!' },
+    { sel: '.navbar [data-tab=home]', tap: true, text: "Now come back home. Tap <b>Home</b>." },
+    { sel: '.hub-side.right', text: 'Visit us <b>every day</b>! I have a gift for you, Papi cooks a meal that powers up your next adventure, and you get a <b>free game of Pinball</b>.' },
+    { sel: '.hub-side:not(.right)', text: '<b>Rides</b> lets you pick what you ride into battle. <b>Menu</b> has music, the story, and moving your game to another device.' },
+    { sel: '.home-panel .chapter-card', text: "This is where adventures start. Your mom is trapped in <b>Chapter 1</b>. Get stronger, then go get her back. I believe in you, my love!" },
+  ];
+  await runTour(steps, { from: S.tut.step || 0, onStep: i => { S.tut.step = i; save(); } });
+  S.tut.stage = 'done'; S.tut.open = ['home', 'shop', 'gear', 'pets', 'belts']; save();
+  tourRunning = false; tab = 'home'; refresh();
 }
 const refresh = () => showHub(ctxHub);
 
@@ -105,62 +138,64 @@ function sideBtn(ic, label, fn, dot) {
 }
 
 const FAMILY_SHEETS = ['arlo', 'mom', 'papa', 'alyzee', 'eveah', 'emery', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'];
-// Where everyone stands in Nana & Papi's room (x = fraction of width, row = back/front)
+// Where everyone stands in Nana & Papi's room, in coordinates of the room picture
+// (ix = 0..1 across the picture, iy = 0..1 down it; iy is where their feet touch the floor)
 const HOME_SPOTS = {
-  papi: { x: 0.13, row: 'back' }, nana: { x: 0.34, row: 'back' }, mom: { x: 0.55, row: 'back' }, papa: { x: 0.73, row: 'back' }, emery: { x: 0.89, row: 'back' },
-  alyzee: { x: 0.17, row: 'front' }, eveah: { x: 0.83, row: 'front' },
+  papi: { ix: 0.24, iy: 0.81 },   // at the stove
+  nana: { ix: 0.43, iy: 0.73 },   // by the window
+  mom: { ix: 0.6, iy: 0.74 }, papa: { ix: 0.73, iy: 0.76 }, emery: { ix: 0.87, iy: 0.79 },
+  alyzee: { ix: 0.3, iy: 0.91 }, eveah: { ix: 0.72, iy: 0.92 },
+  arlo: { ix: 0.5, iy: 0.94 },
 };
-function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets }) {
-  // background: cover, anchored to the bottom (floor)
-  // room picture slightly zoomed and lifted so the floor shows above the chapter card
-  const sc = Math.max(w / bg.naturalWidth, h * 1.12 / bg.naturalHeight);
+const PET_SPOTS = [[0.38, 0.97], [0.62, 0.98], [0.17, 0.95], [0.86, 0.96], [0.27, 0.99], [0.76, 0.99], [0.45, 0.99], [0.56, 0.96], [0.1, 0.99], [0.92, 0.99], [0.5, 1.0]];
+function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH }) {
+  // The room picture fills the area above the chapter card, so its floor is always visible.
+  const sh = Math.max(stageH, h * 0.5);
+  // never zoom in so far that the sides get cut off (tall phones / laptop windows): extend the wall upward instead
+  const sc = Math.min(Math.max(w / bg.naturalWidth, sh / bg.naturalHeight), w * 1.22 / bg.naturalWidth);
   const bw = bg.naturalWidth * sc, bh = bg.naturalHeight * sc;
-  ctx.drawImage(bg, (w - bw) / 2, h * 0.96 - bh, bw, bh);
+  const ox = (w - bw) / 2, oy = sh - bh;
+  ctx.fillStyle = '#5a3418'; ctx.fillRect(0, 0, w, h);
+  if (oy > 0) ctx.drawImage(bg, 0, 0, bg.naturalWidth, 3, ox, 0, bw, oy + 2);
+  ctx.drawImage(bg, ox, oy, bw, bh);
+  const P = (ix, iy) => [ox + ix * bw, oy + iy * bh];
+  // perspective: people further back are smaller; an adult is ~31% of the picture height
+  const adult = iy => bh * 0.31 * (0.82 + (iy - 0.72) * 1.5);
   const add = (id, x, y, w2, h2, extra = {}) => hits.push({ id, x, y, w: w2, h: h2, ...extra });
-  // people sized to the furniture (an adult is about as tall as the window)
-  const k = Math.min(h * 0.2, w * 0.4) / 112;
-  const ROW = { back: { y: h * 0.62, s: 0.92 }, front: { y: h * 0.705, s: 1.03 } };
-  const person = (key, x, row, anim, tt, facing = 1) => {
-    const r = ROW[row]; const hh = spriteHeight('chars/' + key) * k * r.s;
-    drawAnim(ctx, 'chars/' + key, anim, x, r.y, hh, { t: tt, facing });
-    add(key, x, r.y, hh * 0.5, hh);
+  const drawn = [];
+  const person = (key, anim, tt, facing = 1) => {
+    const sp = HOME_SPOTS[key]; const [x, y] = P(sp.ix, sp.iy);
+    drawn.push({ y, f: () => { const hh = adult(sp.iy) * spriteHeight('chars/' + key) / 112; drawAnim(ctx, 'chars/' + key, anim, x, y, hh, { t: tt, facing }); add(key, x, y, hh * 0.5, hh); } });
   };
   const wave = (i, a = 'idle') => Math.sin(t * 0.5 + i * 1.7) > 0.9 ? 'wave' : Math.sin(t * 0.37 + i) > 0.93 ? 'action' : a;
-  // back row
-  person('papi', w * HOME_SPOTS.papi.x, 'back', 'action', t);
-  person('nana', w * HOME_SPOTS.nana.x, 'back', Math.sin(t * 0.6) > 0.85 ? 'wave' : 'idle', t + 2);
-  fam.forEach((id, i) => { const sp = HOME_SPOTS[id]; if (sp.row === 'back') person(id, w * sp.x, 'back', wave(i), t + i * 1.3, sp.x > 0.5 ? -1 : 1); });
-  // missing family: "?" picture frames on the wall
+  person('papi', 'action', t);
+  person('nana', Math.sin(t * 0.6) > 0.85 ? 'wave' : 'idle', t + 2);
+  fam.forEach((id, i) => person(id, wave(i), t + i * 1.3, HOME_SPOTS[id].ix > 0.5 ? -1 : 1));
+  // Arlo (or Arlo on his ride)
+  { const sp = HOME_SPOTS.arlo; const [x, y] = P(sp.ix, sp.iy); const ride = S.mounts.equipped;
+    drawn.push({ y, f: () => {
+      if (ride && sheetReady('rides/' + ride)) { const rh = adult(sp.iy) * spriteHeight('rides/' + ride) / 112; drawAnim(ctx, 'rides/' + ride, 'ride', x, y, rh, { t, frame: 0 }); add('arlo', x, y, rh * 0.7, rh); }
+      else { if (ride) preloadSheets(['rides/' + ride]); const ah = adult(sp.iy) * 100 / 112; drawAnim(ctx, 'chars/arlo', Math.sin(t * 0.4) > 0.92 ? 'victory' : 'idle', x, y, ah, { t }); add('arlo', x, y, ah * 0.5, ah); }
+    } }); }
+  // pets wander on the floor in front
+  pets.forEach((id, i) => {
+    const [ix, iy] = PET_SPOTS[i % PET_SPOTS.length]; const vx = Math.cos(t * 0.45 + i * 2);
+    const [bx, y] = P(ix, iy); const x = bx + Math.sin(t * 0.45 + i * 2) * 12 * u;
+    drawn.push({ y, f: () => {
+      const ph = adult(iy) * spriteHeight('chars/' + id) / 112;
+      if (FAMILY_SHEETS.includes(id)) drawAnim(ctx, 'chars/' + id, Math.abs(vx) > 0.6 ? 'run' : (i % 3 === 0 ? 'sit' : 'idle'), x, y, ph, { t: t + i, facing: vx > 0 ? 1 : -1 });
+      else drawPet(ctx, id, x, y, 0.62 * u, { t: t + i, facing: vx > 0 ? 1 : -1 });
+      add(id, x, y, ph * 1.2, ph);
+    } });
+  });
+  drawn.sort((a, b) => a.y - b.y).forEach(d => d.f());   // back to front
+  // missing family: "?" picture frames on the wall above the window
   missing.forEach((id, i) => {
-    const fs = Math.max(26, h * 0.05), x = w * 0.5 + (i - (missing.length - 1) / 2) * fs * 1.25, y = h * 0.12;
+    const fs = Math.max(26, bh * 0.05), [cx] = P(0.5, 0); const x = cx + (i - (missing.length - 1) / 2) * fs * 1.25, y = Math.max(oy + bh * 0.2, 58);
     rr(ctx, x - fs * 0.4, y - fs * 0.5, fs * 0.8, fs, 4, '#6b4424', 2.5);
     rr(ctx, x - fs * 0.28, y - fs * 0.37, fs * 0.56, fs * 0.74, 2, '#2e2440', 1.5);
     text(ctx, '?', x, y + 1, fs * 0.5, '#ffd23a', 'center', null);
     add('missing', x, y + fs * 0.5, fs, fs, { who: FAMILY[id].full, ch: FAMILY[id].chapter });
-  });
-  // front row: Alyzée, Arlo (centre), Évéah
-  fam.forEach((id, i) => { const sp = HOME_SPOTS[id]; if (sp.row === 'front') person(id, w * sp.x, 'front', wave(i + 3), t + i * 1.3, sp.x > 0.5 ? -1 : 1); });
-  const ax = w * 0.5, ay = h * 0.72;
-  if (S.mounts.equipped && sheetReady('rides/' + S.mounts.equipped)) {
-    const rh = spriteHeight('rides/' + S.mounts.equipped) * k * 1.05;
-    drawAnim(ctx, 'rides/' + S.mounts.equipped, 'ride', ax, ay, rh, { t, frame: 0 });
-    add('arlo', ax, ay, rh * 0.7, rh);
-  } else {
-    if (S.mounts.equipped) preloadSheets(['rides/' + S.mounts.equipped]);
-    const ah = 100 * k * 1.1;
-    drawAnim(ctx, 'chars/arlo', Math.sin(t * 0.4) > 0.92 ? 'victory' : 'idle', ax, ay, ah, { t });
-    add('arlo', ax, ay, ah * 0.5, ah);
-  }
-  // pets wander on the floor in front
-  const PET_X = [0.33, 0.67, 0.07, 0.93, 0.25, 0.75, 0.42, 0.58, 0.12, 0.88, 0.5];
-  pets.forEach((id, i) => {
-    const baseX = w * PET_X[i % PET_X.length];
-    const vx = Math.cos(t * 0.45 + i * 2); const x = baseX + Math.sin(t * 0.45 + i * 2) * 12 * u;
-    const y = h * 0.73 + (i % 2) * h * 0.012;
-    const ph = spriteHeight('chars/' + id) * k * 1.0;
-    if (FAMILY_SHEETS.includes(id)) drawAnim(ctx, 'chars/' + id, Math.abs(vx) > 0.6 ? 'run' : (i % 3 === 0 ? 'sit' : 'idle'), x, y, ph, { t: t + i, facing: vx > 0 ? 1 : -1 });
-    else drawPet(ctx, id, x, y, 0.62 * u, { t: t + i, facing: vx > 0 ? 1 : -1 });
-    add(id, x, y, ph * 1.2, ph);
   });
 }
 
@@ -181,7 +216,7 @@ function drawHome(canvas, hits) {
     const t = Math.max(0, (now - t0) / 1000); const u = h / 330;
     hits.length = 0;
     const hubBg = bgImage('bg_hub');
-    if (hubBg && sheetReady('chars/arlo')) { drawHomeArt(ctx, w, h, t, u, hubBg, hits, { fam, missing, pets, belt }); requestAnimationFrame(frame); return; }
+    if (hubBg && sheetReady('chars/arlo')) { const card = canvas.parentElement?.querySelector('.chapter-card'); const stageH = card ? card.getBoundingClientRect().top - r.top + 24 : h * 0.72; drawHomeArt(ctx, w, h, t, u, hubBg, hits, { fam, missing, pets, belt, stageH }); requestAnimationFrame(frame); return; }
     // room
     const fy = h * 0.8;
     ctx.fillStyle = '#f3dcb6'; ctx.fillRect(0, 0, w, fy);
@@ -252,7 +287,7 @@ function drawHome(canvas, hits) {
 
 function nanaGift() {
   if (S.daily.nana === today()) return infoModal('Nana', '<i>"I already gave you your gift today, sweetheart. Come back tomorrow!"</i>', 'OK');
-  const gifts = [{ coins: 500 }, { gems: 40 }, { food: 15 }, { coins: 300, gems: 20 }, { coins: 800 }];
+  const gifts = BAL.nanaGift(S.progress.unlocked);
   const g = pick(gifts);
   S.coins += g.coins || 0; S.gems += g.gems || 0; S.petFood += g.food || 0; S.daily.nana = today(); save(); sfx('chest');
   const p = el('div', { class: 'panel', style: { textAlign: 'center' } }, el('h2', {}, "Nana's Gift"),
@@ -276,15 +311,16 @@ function papiMeal() {
 }
 async function dailyPinball() {
   const free = S.daily.pinball !== today();
-  if (!free && S.gems < 10) return infoModal('Pinball', 'Your free daily game is used up. Another game costs 💎 10.', 'OK');
-  if (!free && !(await confirmModal('Pinball', 'Play again for 💎 10? Big scores win coins and gems!', 'Play!', 'No'))) return;
-  if (free) S.daily.pinball = today(); else S.gems -= 10;
+  if (!free && S.gems < 5) return infoModal('Pinball', 'Your free daily game is used up. Come back tomorrow, or play again for 💎 5.', 'OK');
+  if (!free && !(await confirmModal('Pinball', 'Play again for 💎 5? Big scores win coins and gems!', 'Play!', 'No'))) return;
+  if (free) S.daily.pinball = today(); else S.gems -= 5;
   save();
   const score = await playPinball({ title: 'Daily Pinball', seconds: 40 });
-  const coins = Math.round(score / 6), gems = Math.floor(score / 1500) * 3;
+  // payout scales with progress so it's a nice bonus, never a shortcut
+  const lvl = S.progress.unlocked;
+  const coins = Math.round(Math.min(score, 6000) / 6000 * (60 + 50 * lvl)), gems = score >= 5000 ? 3 : score >= 2500 ? 1 : 0;
   S.coins += coins; S.gems += gems; save();
-  await infoModal('Pinball Results', `Score: <b>${fmt(score)}</b><br>`, 'Nice!');
-  toast(`+🪙${coins} +💎${gems}`);
+  await infoModal('Pinball Results', `Score: <b>${fmt(score)}</b><br><br>🪙 +${coins}${gems ? ` · 💎 +${gems}` : ''}`, 'Nice!');
   refresh();
 }
 
@@ -336,6 +372,7 @@ function menuModal(onReplayIntro) {
     el('button', { class: 'btn purple', onclick: () => { m.close(); onReplayIntro(); } }, '🎬 Watch the story again'),
     el('button', { class: 'btn gold', onclick: () => { m.close(); transferModal(); } }, '📲 Move my save to another device'),
     el('button', { class: 'btn gray', onclick: () => { m.close(); statsModal(); } }, '📊 My stats'),
+    el('button', { class: 'btn red small', style: { marginTop: '6px' }, onclick: async () => { m.close(); if (await confirmModal('Start over?', 'This erases ALL progress on this device and starts a brand new game.', 'Erase', 'Cancel') && await confirmModal('Are you SURE?', 'Everything will be gone forever. Belts, gear, pets, rescues... all of it.', 'Yes, erase', 'No!')) wipeAndReload(); } }, 'Start a new game'),
     el('button', { class: 'btn green', onclick: () => m.close() }, 'Close')));
   const m = modal(p, { dismissable: true });
 }
@@ -573,7 +610,7 @@ function shopTab(body) {
     const [cur, amt] = Object.entries(c.cost)[0];
     sec.append(el('div', { class: 'shop-card' }, el('div', { class: 'ic' }, icon('chest_' + id, 56, c.icon)), el('div', { class: 'grow' }, el('div', { class: 't' }, c.name), el('div', { class: 'd' }, c.desc)),
       el('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
-        el('button', { class: 'btn small gold', onclick: () => openChest(id, 1) }, `${cur === 'coins' ? '🪙' : '💎'} ${amt}`),
+        el('button', { class: 'btn small gold', onclick: () => openChest(id, 1) }, id === 'wood' && S.freeChest ? 'FREE' : `${cur === 'coins' ? '🪙' : '💎'} ${amt}`),
         el('button', { class: 'btn tiny purple', onclick: () => openChest(id, 10) }, `x10 ${cur === 'coins' ? '🪙' : '💎'}${amt * 9}`))));
   }
   sec.append(el('h3', {}, 'Trades'));
@@ -585,9 +622,9 @@ function shopTab(body) {
   body.append(sec);
 }
 async function openChest(id, n) {
-  const c = CHESTS[id]; const [cur, amt] = Object.entries(c.cost)[0]; const price = n === 10 ? amt * 9 : amt;
+  const c = CHESTS[id]; const [cur, amt] = Object.entries(c.cost)[0]; const free = id === 'wood' && n === 1 && S.freeChest; const price = free ? 0 : n === 10 ? amt * 9 : amt;
   if (S[cur] < price) return toast(`Need ${cur === 'coins' ? '🪙' : '💎'} ${price}`);
-  S[cur] -= price;
+  S[cur] -= price; if (free) S.freeChest = false;
   const got = [];
   for (let i = 0; i < n; i++) {
     let r = Math.random(), rarity = 0; for (let k = 0; k < c.odds.length; k++) { r -= c.odds[k]; if (r <= 0) { rarity = k; break; } }

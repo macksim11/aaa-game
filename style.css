@@ -308,3 +308,25 @@ img.gi { display: inline-block; vertical-align: middle; object-fit: contain; poi
 .rescue-pic { width: 100%; border-radius: 12px; border: 3px solid var(--ink); margin: 4px 0 8px; animation: pop .4s ease-out; }
 .card.with-icon { position: relative; padding-right: 52px; }
 .card.with-icon > img.gi { position: absolute; right: 6px; top: 8px; }
+
+/* ---------- guided tour ---------- */
+.tut-layer { position: absolute; inset: 0; z-index: 85; pointer-events: none; }
+.tut-hole { position: absolute; display: none; border-radius: 18px; box-shadow: 0 0 0 9999px rgba(8,4,20,.72), 0 0 0 3px #ffe680, 0 0 22px 6px rgba(255,214,80,.7); animation: tutGlow 1.4s ease-in-out infinite; transition: left .25s, top .25s, width .25s, height .25s; }
+@keyframes tutGlow { 50% { box-shadow: 0 0 0 9999px rgba(8,4,20,.72), 0 0 0 3px #fff3b0, 0 0 30px 10px rgba(255,214,80,.95); } }
+.tut-hand { position: absolute; display: none; font-size: 40px; filter: drop-shadow(0 3px 2px rgba(0,0,0,.5)); animation: tutHand .9s ease-in-out infinite; }
+@keyframes tutHand { 50% { transform: translate(6px, 12px) scale(.92); } }
+.tut-coach { position: absolute; left: 10px; right: 10px; bottom: calc(86px + var(--safe-bot)); display: flex; gap: 10px; align-items: flex-start; pointer-events: auto; background: linear-gradient(var(--paper), var(--paper2)); border: 3px solid var(--ink); border-radius: 20px; padding: 10px 12px 10px 10px; box-shadow: inset 0 0 0 3px rgba(255,255,255,.6), 0 6px 0 rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.5); visibility: hidden; }
+.tut-coach.top { bottom: auto; top: calc(var(--safe-top) + 70px); }
+.tut-coach.pop { animation: pop .3s cubic-bezier(.3,1.5,.6,1); }
+.tut-face { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 3px solid var(--purple); background: radial-gradient(circle at 50% 35%, #ffe8f4, #f3c6e0); }
+.tut-body { flex: 1; min-width: 0; }
+.tut-name { font-family: var(--title); font-size: 16px; color: var(--purple-d); }
+.tut-text { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.tut-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 6px; min-height: 30px; }
+.tut-taphint { font-size: 12px; font-weight: 700; color: var(--purple-d); animation: blink 1.1s infinite; }
+.navbar button.locked { opacity: .55; }
+.navbar button.locked .ic { filter: grayscale(1) brightness(.7); }
+.navbar button .lockbadge { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); }
+.navbar button .lockbadge img.gi { width: 22px !important; height: 22px !important; }
+.card.coach { border-left-color: #ff7ac8; background: linear-gradient(#fff4fb, #ffe0f1); }
+.card.coach b { color: var(--purple-d); }

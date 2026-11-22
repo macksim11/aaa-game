@@ -9,8 +9,8 @@ export function defaultSave() {
     version: SAVE_VERSION,
     name: 'Arlo',
     introSeen: false,
-    coins: 200,
-    gems: 30,
+    coins: 0,
+    gems: 0,
     petFood: 0,
     eggs: 0,
     horseshoes: 0,
@@ -31,6 +31,9 @@ export function defaultSave() {
     stats: { runs: 0, deaths: 0, kills: 0, bossKills: 0 },
     settings: { music: true, sfx: true, speed: 1 },
     seenNews: [],
+    // first-time flow: 'story' -> 'firstRun' (straight into Chapter 1) -> 'tour' (hub walkthrough) -> 'done'
+    tut: { stage: 'story', open: ['home'], step: 0 },
+    freeChest: false,
   };
 }
 
@@ -60,7 +63,12 @@ export let S = load();
 export function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return migrate(mergeDefaults(defaultSave(), JSON.parse(raw)));
+    if (raw) {
+      const obj = JSON.parse(raw);
+      // saves from before the tutorial existed skip it (they already know the game)
+      if (!obj.tut && obj.introSeen) obj.tut = { stage: 'done', open: ['home', 'shop', 'gear', 'pets', 'belts'], step: 0 };
+      return migrate(mergeDefaults(defaultSave(), obj));
+    }
   } catch (e) { console.warn('save load failed', e); }
   return defaultSave();
 }
@@ -68,6 +76,7 @@ export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { console.warn('save failed', e); }
 }
 export function resetSave() { S = defaultSave(); save(); }
+export function wipeAndReload() { try { localStorage.removeItem(KEY); } catch {} location.reload(); }
 
 export function exportCode() {
   const json = JSON.stringify(S);
@@ -78,6 +87,7 @@ export function importCode(code) {
   if (!code.startsWith('AAA1:')) throw new Error('That is not an AAA save code.');
   const json = decodeURIComponent(escape(atob(code.slice(5))));
   const obj = JSON.parse(json);
+  if (!obj.tut && obj.introSeen) obj.tut = { stage: 'done', open: ['home', 'shop', 'gear', 'pets', 'belts'], step: 0 };
   S = migrate(mergeDefaults(defaultSave(), obj));
   save();
 }

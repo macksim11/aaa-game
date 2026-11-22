@@ -85,6 +85,6 @@ export function iconizeText(root) {
 let iconizeQueued = false;
 export function watchIcons(root) {
   iconizeText(root);
-  new MutationObserver(() => { if (iconizeQueued) return; iconizeQueued = true; requestAnimationFrame(() => { iconizeQueued = false; iconizeText(root); }); })
+  new MutationObserver(() => { if (iconizeQueued) return; iconizeQueued = true; queueMicrotask(() => { iconizeQueued = false; iconizeText(root); }); })
     .observe(root, { childList: true, subtree: true, characterData: true });
 }

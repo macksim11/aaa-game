@@ -32,16 +32,24 @@ function goHub() {
   });
 }
 
+// Like the real thing: a brand-new player goes straight from the story into Chapter 1.
+// Nana & Papi's house (and the tour of it) opens after that first adventure ends.
+function firstAdventure() {
+  S.tut.stage = 'firstRun'; save();
+  startRun(1, () => { S.tut.stage = 'tour'; S.tut.step = 0; S.tut.open = ['home']; save(); goHub(); });
+}
+
 function boot() {
   if (!S.introSeen) {
     // splash so the first tap also unlocks sound
     const splash = el('div', { class: 'cutscene title-splash', style: { alignItems: 'center', justifyContent: 'center', gap: '18px', background: 'radial-gradient(circle at 50% 35%, #5a35a8, #1d1230)', padding: '0 0 env(safe-area-inset-bottom)' } },
       el('img', { src: 'assets/title.webp', style: { width: '100%', maxHeight: '72vh', objectFit: 'contain', borderTop: '4px solid #2b1d14', borderBottom: '4px solid #2b1d14' } }),
-      el('button', { class: 'btn gold big', onclick: () => { initAudio(); splash.remove(); playIntro(() => { S.introSeen = true; save(); goHub(); }); } }, '▶ PLAY'),
+      el('button', { class: 'btn gold big', onclick: () => { initAudio(); splash.remove(); playIntro(() => { S.introSeen = true; S.tut.stage = 'firstRun'; save(); firstAdventure(); }); } }, '▶ PLAY'),
       el('div', { style: { color: '#cbb9f0', fontSize: '12px', marginTop: '18px' } }, 'Happy Birthday Arlo! 🎂'));
     document.getElementById('overlay').append(splash);
     return;
   }
+  if (S.tut.stage === 'story' || S.tut.stage === 'firstRun') return firstAdventure();
   goHub();
 }
 boot();

@@ -12,6 +12,7 @@ import { FAMILY } from './data/family.js';
 import { GEAR, randomGearId } from './data/gear.js';
 import { arloLook } from './art/people.js';
 import { fight } from './battle.js';
+import { BAL, coinMult as chapterCoinMult } from './data/balance.js';
 import { sfx, playMusic } from './audio.js';
 import { modal, skillPicker, skillIcon, infoModal, confirmModal, rewardChips, canvasBox } from './ui/common.js';
 import { playPinball } from './ui/pinball.js';
@@ -60,7 +61,8 @@ export function startRun(chId, onExit) {
   }
   recalc(true);
   const xpNext = () => 25 + 12 * run.level;
-  const coinMult = 1 + (ch.id - 1) * 0.7;
+  const coinMult = chapterCoinMult(ch.id);
+  const MULT = BAL.chapterMult[ch.id - 1] || ch.mult;
   const hasAlyzee = S.rescued.family.includes('alyzee');
 
   // ---------- schedule ----------
@@ -173,6 +175,9 @@ export function startRun(chId, onExit) {
     requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
     return c;
   }
+  // Nana's tips during the very first adventure
+  const firstRun = S.tut?.stage === 'firstRun'; const tipped = {};
+  function coach(key, html) { if (!firstRun || tipped[key]) return; tipped[key] = true; addCard('<b>Nana:</b> ' + html, 'coach', false); }
   function tag(cls, txt) { return el('span', { class: 'tag ' + cls }, txt); }
   function setActions(btns) { actions.innerHTML = ''; btns.forEach(b => actions.append(b)); }
   function btn(label, color, fn, sub) {
@@ -191,7 +196,7 @@ export function startRun(chId, onExit) {
     if (e.atk) { run.ev.atk += e.atk; tags.push(tag(e.atk > 0 ? 'atk' : 'neg', `ATK ${e.atk > 0 ? '+' : ''}${Math.round(e.atk * 100)}%`)); }
     if (e.def) { run.ev.def += e.def; tags.push(tag(e.def > 0 ? 'def' : 'neg', `DEF ${e.def > 0 ? '+' : ''}${Math.round(e.def * 100)}%`)); }
     if (e.xp) { const x = Math.round((20 + run.day) * e.xp); run.xp += x; tags.push(tag('xp', `EXP +${x}`)); }
-    if (e.coins) { const c = Math.round((8 + run.day * 0.6) * coinMult * e.coins * (1 + (run.mods.coinPct || 0))); run.coins += c; tags.push(tag('coin', `🪙 +${c}`)); sfx('coin'); }
+    if (e.coins) { const c = Math.round(BAL.battleCoins(run.day) * coinMult * e.coins * (1 + (run.mods.coinPct || 0))); run.coins += c; tags.push(tag('coin', `🪙 +${c}`)); sfx('coin'); }
     if (e.gems) { run.gems += e.gems; tags.push(tag('gem', `💎 +${e.gems}`)); }
     if (e.food) { run.food += e.food; tags.push(tag('coin', `🦴 Pet food +${e.food}`)); }
     recalc(); updateUI();
@@ -203,6 +208,7 @@ export function startRun(chId, onExit) {
       run.hp = Math.min(run.stats.maxHp, run.hp + Math.round(run.stats.maxHp * 0.1));
       updateUI();
       addCard(`You've reached [g:Lv.${run.level}]!`, '', false);
+      coach('skill', 'You levelled up! Pick a <b>skill</b>. Skills make you stronger until this adventure ends.');
       await chooseSkill('common', `Level ${run.level}!`);
     }
     updateUI();
@@ -224,7 +230,7 @@ export function startRun(chId, onExit) {
   // ---------- enemies ----------
   function makeEnemy(key, slot = 0, opts = {}) {
     const d = ENEMIES[key]; const prog = 1 + (run.day / ch.days) * 1.1;
-    let hp = d.hp * ch.mult * prog, atk = d.atk * 1.25 * ch.mult * prog, def = d.def * Math.pow(ch.mult, 0.6);
+    let hp = d.hp * BAL.enemyHp * MULT * prog, atk = d.atk * BAL.enemyAtk * MULT * prog, def = d.def * Math.pow(MULT, 0.6);
     if (d.elite || opts.elite) { hp *= ELITE_HP; atk *= ELITE_ATK; }
     if (d.boss) { hp *= BOSS_HP; atk *= BOSS_ATK; }
     if (opts.weak) { hp *= 0.6; atk *= 0.7; }
@@ -239,6 +245,7 @@ export function startRun(chId, onExit) {
   }
   async function doBattle(enemies, kind = 'normal') {
     await sleep(500 / scene.speed);
+    coach('battle', kind === 'boss' ? 'A BOSS! Bosses are really strong. Do your best!' : 'Monsters! Tap <b>Battle</b>. Arlo fights all by himself, so watch him go!');
     setActions([btn(kind === 'boss' ? 'BOSS BATTLE' : 'Battle', 'red', () => go())]);
     await new Promise(r => { go = r; });
     busy('Battling', 'red');
@@ -252,7 +259,7 @@ export function startRun(chId, onExit) {
     // rewards
     const n = enemies.length;
     const xp = Math.round((20 + run.day) * (kind === 'elite' ? 3 : 1) * (0.75 + n * 0.25) * (1 + (run.mods.xpPct || 0)));
-    const coins = Math.round((8 + run.day * 0.6) * coinMult * (kind === 'elite' ? 3 : 1) * (0.75 + n * 0.25) * (1 + (run.mods.coinPct || 0)));
+    const coins = Math.round(BAL.battleCoins(run.day) * coinMult * (kind === 'elite' ? 3 : 1) * (0.75 + n * 0.25) * (1 + (run.mods.coinPct || 0)));
     const food = randi(1, 2) + (kind === 'elite' ? 3 : 0);
     run.xp += xp; run.coins += coins; run.food += food;
     const gems = kind === 'elite' ? 6 : (chance(0.08) ? 1 : 0); run.gems += gems;
@@ -325,12 +332,13 @@ export function startRun(chId, onExit) {
       return;
     }
     addCard(ev.text, cls, true, null, EV_ICON[ev.id]);
+    coach('choice', 'Some days you get to <b>choose</b> what happens. Pick one!');
     const choice = await new Promise(res => {
       setActions(ev.choices.map((c, i) => {
         const b = btn(c.label, i === 0 && ev.choices.length > 1 && !c.cost ? 'gold' : 'gold', () => res(c), c.sub || '');
         if (c.cost && run.coins < c.cost) { b.disabled = true; b.querySelector('.sub').textContent = `Need ${c.cost} coins`; }
         return b;
-      }));
+      }).concat(ev.choices.every(c => c.cost && run.coins < c.cost) ? [btn('Walk away', 'gray', () => res({ label: 'Walk away', effect: {}, result: "Not enough coins... you walk away. Maybe next time!" }), '')] : []));
     });
     busy('...');
     if (choice.cost) { run.coins -= choice.cost; updateUI(); }
@@ -420,7 +428,7 @@ export function startRun(chId, onExit) {
 
   // ---------- end of run ----------
   function bankRewards(extra = {}) {
-    const dayBonus = Math.round(run.day * 5 * coinMult);
+    const dayBonus = Math.round(run.day * BAL.dayBonus * coinMult);
     const r = { coins: run.coins + dayBonus + (extra.coins || 0), gems: run.gems + (extra.gems || 0), food: run.food + (extra.food || 0) };
     S.coins += r.coins; S.gems += r.gems; S.petFood += r.food;
     S.progress.best[ch.id] = Math.max(S.progress.best[ch.id] || 0, run.day);
@@ -440,8 +448,8 @@ export function startRun(chId, onExit) {
       el('div', { class: 'days' }, `${run.day} days`),
       el('div', { style: { fontSize: '13px', color: '#ffd86a' } }, `Longest journey: ${S.progress.best[ch.id]} days`),
       rewardChips(r),
-      el('div', { style: { fontSize: '12.5px', margin: '6px 0 10px', color: '#e8dcff' } }, tipText()),
-      el('button', { class: 'btn gold big', onclick: () => { m.close(); exit(); } }, 'Back'));
+      el('div', { style: { fontSize: '12.5px', margin: '6px 0 10px', color: '#e8dcff' } }, firstRun ? 'The minions were too strong this time... Run to Nana & Papi\'s house. They\'ll help you get stronger!' : tipText()),
+      el('button', { class: 'btn gold big', onclick: () => { m.close(); exit(); } }, firstRun ? "Go to Nana & Papi's" : 'Back'));
     const m = modal(box);
   }
   function tipText() {
@@ -465,8 +473,8 @@ export function startRun(chId, onExit) {
     S.progress.unlocked = Math.max(S.progress.unlocked, Math.min(CHAPTERS.length, ch.id + 1));
     if (first && chapterById(ch.id + 1)) S.progress.selected = ch.id + 1;
     S.stats.bossKills++;
-    const k = first ? 1 : 0.3;
-    const extra = { coins: Math.round(ch.reward.coins * k), gems: Math.round(ch.reward.gems * k), food: first ? 10 : 3 };
+    const k = first ? 1 : BAL.replayClearFactor;
+    const extra = { coins: Math.round(BAL.clearCoins * coinMult * k), gems: Math.round(BAL.clearGems * (1 + ch.id * 0.5) * k), food: first ? 10 : 3 };
     const fam = ch.rescueFamily && !S.rescued.family.includes(ch.rescueFamily) ? ch.rescueFamily : null;
     if (fam) S.rescued.family.push(fam);
     let mountMsg = '', gearMsg = '';
@@ -530,5 +538,6 @@ export function startRun(chId, onExit) {
   updateUI();
   setActions([btn('Start!', 'green', nextDay)]);
   addCard(`[p:Chapter ${ch.id}: ${ch.name}]`, '', false);
+  coach('start', 'Go find your family, sweetheart! Tap <b>Start!</b>, then <b>Next Day</b> to keep walking. Something happens every day.');
   return run;
 }
