@@ -106,6 +106,13 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   return true;
 }
 
+// Head-and-shoulders picture for round avatars / speech boxes: the top ~63% of the sprite,
+// with a little space above the hair so faces aren't cropped too tight.
+export function drawHeadshot(ctx, key, w, h, opts = {}) {
+  const H = h * 1.5;
+  return drawAnim(ctx, key, opts.anim || 'idle', w / 2, h * 0.07 + H, H, { frame: 0, noShadow: true, ...opts });
+}
+
 // static portrait (for menus): first frame of an anim drawn to fit a box
 export function drawPortrait(ctx, key, anim, x, y, h, t = 0) { return drawAnim(ctx, key, anim, x, y, h, { t, noShadow: true }); }
 

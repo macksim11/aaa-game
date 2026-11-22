@@ -4,7 +4,7 @@
 import { el, sleep } from '../util.js';
 import { sfx } from '../audio.js';
 import { canvasBox } from './common.js';
-import { drawAnim } from '../art/sheets.js';
+import { drawHeadshot } from '../art/sheets.js';
 
 const overlayEl = () => document.getElementById('overlay');
 const hasModal = () => !!overlayEl().querySelector('.modal-bg, .pinball, .cutscene');
@@ -26,7 +26,7 @@ export async function runTour(steps, { from = 0, onStep } = {}) {
   const textEl = el('div', { class: 'tut-text' });
   const nextBtn = el('button', { class: 'btn gold small tut-next' }, 'Next ▶');
   const tapHint = el('div', { class: 'tut-taphint' }, 'Tap the glowing spot!');
-  const face = canvasBox(64, 64, (ctx, w, h, t) => drawAnim(ctx, 'chars/nana', 'idle', w / 2, h * 1.9, h * 2.0, { t, noShadow: true }), true);
+  const face = canvasBox(64, 64, (ctx, w, h, t) => drawHeadshot(ctx, 'chars/nana', w, h), true);
   const coach = el('div', { class: 'tut-coach' }, el('div', { class: 'tut-face' }, face), el('div', { class: 'tut-body' }, el('div', { class: 'tut-name' }, 'Nana'), textEl, el('div', { class: 'tut-actions' }, tapHint, nextBtn)));
   layer.append(hole, hand, coach);
   document.getElementById('app').append(layer);

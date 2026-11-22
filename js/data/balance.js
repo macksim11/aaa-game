@@ -9,7 +9,8 @@
 export const BAL = {
   // how much tougher each chapter's monsters are (chapter 1 = 1)
   chapterMult: [1, 1.7, 2.8, 4.4, 6.4, 11.0, 16.5, 21.0, 24.5, 28],
-  enemyHp: 1.75, enemyAtk: 1.85,                  // global monster toughness
+  enemyHp: 1.75, enemyAtk: 1.85,
+  battlePace: 1.6,                               // >1 = slower, easier-to-follow fights (x1 speed)                  // global monster toughness
   // coins/XP scale with chapter at a slightly slower rate than monsters, so later chapters need a few more tries
   coinPow: 0.85,
   battleCoins: (day) => 6 + day * 0.4,          // base coins per battle (x chapter coin multiplier)

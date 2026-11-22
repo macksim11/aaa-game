@@ -1,13 +1,15 @@
 import { chance, rand } from './util.js';
 import { PETS, petLevelMult } from './data/pets.js';
 import { sfx } from './audio.js';
+import { BAL } from './data/balance.js';
 
 // Turn-based auto battle, animated on the Scene.
 // ctx = { scene, run, hero, emery, petActors, onUpdate }
 export async function fight(ctx, enemies, { boss = false, elite = false } = {}) {
   const { scene, run } = ctx;
   const S = run.stats; // live derived stats (recalculated by run)
-  const wait = ms => new Promise(r => setTimeout(r, ms / scene.speed));
+  // battlePace > 1 slows every beat of the fight so a kid can follow each exchange
+  const wait = ms => new Promise(r => setTimeout(r, ms * BAL.battlePace / scene.speed));
   const hero = ctx.hero;
   const maxRounds = (boss || elite) ? 15 : 25;
   let round = 0;
@@ -294,7 +296,8 @@ export async function fight(ctx, enemies, { boss = false, elite = false } = {}) 
     if (alive().length) await tickDots();
     if (!alive().length) break;
     // --- enemy phase ---
-    for (const e of alive()) { await enemyAct(e); if (run.hp <= 0 && await checkDeath()) break; }
+    await wait(260);   // short beat when the turn switches sides
+    for (const e of alive()) { await enemyAct(e); await wait(120); if (run.hp <= 0 && await checkDeath()) break; }
     if (run.hp <= 0) break;
     // --- end of round ---
     const M = run.mods;

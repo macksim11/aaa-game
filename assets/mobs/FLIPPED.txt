@@ -17,3 +17,4 @@ guardian
 piglin
 wither_skel
 Not flipped (already facing left or front-facing): creeper blaze magma_cube
+creeper
