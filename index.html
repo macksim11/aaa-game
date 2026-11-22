@@ -38,6 +38,23 @@
   <div id="overlay"></div>
   <div id="toast"></div>
 </div>
+<script>
+// iPhone home-screen apps (with the see-through status bar) report a viewport that is short by the
+// status-bar height, leaving a gap at the bottom. Measure the real screen and stretch the game to it.
+(function () {
+  var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (!standalone) return;
+  function fit() {
+    var app = document.getElementById('app'); if (!app) return;
+    var portrait = window.innerHeight >= window.innerWidth;
+    var full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
+    var gap = full - window.innerHeight;
+    if (gap > 0 && gap < 120) { app.style.bottom = 'auto'; app.style.height = full + 'px'; }
+    else { app.style.bottom = ''; app.style.height = ''; }
+  }
+  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 300); });
+})();
+</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
