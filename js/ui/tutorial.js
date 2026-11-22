@@ -26,7 +26,7 @@ export async function runTour(steps, { from = 0, onStep } = {}) {
   const textEl = el('div', { class: 'tut-text' });
   const nextBtn = el('button', { class: 'btn gold small tut-next' }, 'Next ▶');
   const tapHint = el('div', { class: 'tut-taphint' }, 'Tap the glowing spot!');
-  const face = canvasBox(64, 64, (ctx, w, h, t) => drawHeadshot(ctx, 'chars/nana', w, h), true);
+  const face = el('img', { src: 'assets/ui/face_nana.webp', alt: 'Nana' });
   const coach = el('div', { class: 'tut-coach' }, el('div', { class: 'tut-face' }, face), el('div', { class: 'tut-body' }, el('div', { class: 'tut-name' }, 'Nana'), textEl, el('div', { class: 'tut-actions' }, tapHint, nextBtn)));
   layer.append(hole, hand, coach);
   document.getElementById('app').append(layer);

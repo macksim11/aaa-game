@@ -443,13 +443,14 @@ export function startRun(chId, onExit) {
     await sleep(700);
     const r = bankRewards();
     const box = el('div', { class: 'result-box' },
+      el('img', { class: 'result-face sad', src: 'assets/ui/face_arlo.webp', alt: '' }),
       el('div', { class: 'big-banner', style: { fontSize: '40px' } }, 'Defeat'),
       el('div', {}, `Chapter ${ch.id}: ${ch.name}`), el('div', {}, 'Days survived'),
-      el('div', { class: 'days' }, `${run.day} days`),
-      el('div', { style: { fontSize: '13px', color: '#ffd86a' } }, `Longest journey: ${S.progress.best[ch.id]} days`),
+      el('div', { class: 'days' }, `${run.day} ${run.day === 1 ? 'day' : 'days'}`),
+      el('div', { style: { fontSize: '13px', color: '#ffd86a' } }, `Longest journey: ${S.progress.best[ch.id]} ${S.progress.best[ch.id] === 1 ? 'day' : 'days'}`),
       rewardChips(r),
       el('div', { style: { fontSize: '12.5px', margin: '6px 0 10px', color: '#e8dcff' } }, firstRun ? 'The minions were too strong this time... Run to Nana & Papi\'s house. They\'ll help you get stronger!' : tipText()),
-      el('button', { class: 'btn gold big', onclick: () => { m.close(); exit(); } }, firstRun ? "Go to Nana & Papi's" : 'Back'));
+      el('button', { class: 'btn gold big', style: firstRun ? { fontSize: '22px' } : {}, onclick: () => { m.close(); exit(); } }, firstRun ? "Go to Nana & Papi's" : 'Back'));
     const m = modal(box);
   }
   function tipText() {

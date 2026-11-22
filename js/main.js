@@ -1,13 +1,35 @@
 import { S, save } from './state.js';
-import { el, watchIcons, preloadIcons } from './util.js';
-preloadIcons();
+import { el, watchIcons, preloadIcons, pick } from './util.js';
 // swap leftover emoji in the UI for the game's icon art
 watchIcons(document.getElementById('app') || document.body);
 import { initAudio } from './audio.js';
 import { preloadSheets } from './art/sheets.js';
 
-// load all character art up front so every menu shows the new sprites
-preloadSheets(['arlo', 'emery', 'mom', 'papa', 'alyzee', 'eveah', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'].map(k => 'chars/' + k));
+const CHAR_SHEETS = ['arlo', 'emery', 'mom', 'papa', 'alyzee', 'eveah', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'].map(k => 'chars/' + k);
+const loadImg = src => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = src; });
+
+// Loading screen: load the characters, icons and main pictures with a progress bar,
+// so the game never shows a blank screen or pops art in late.
+async function loadEverything() {
+  const bar = document.getElementById('bootbar'), tip = document.getElementById('boottip');
+  const tips = ['Waking up Twyla...', 'Papi is heating up the stove...', 'Polishing the diamond sword...', 'Tying Arlo\'s belt...', 'Counting coins...', 'Absolute cinema loading...'];
+  if (tip) tip.textContent = pick(tips);
+  const tipTimer = setInterval(() => { if (tip) tip.textContent = pick(tips); }, 1600);
+  const jobs = [
+    ...CHAR_SHEETS.map(k => preloadSheets([k])),
+    preloadIcons(),
+    loadImg('assets/title.webp'), loadImg('assets/bg/bg_hub.webp'), loadImg('assets/ui/face_arlo.webp'), loadImg('assets/ui/face_nana.webp'),
+    document.fonts?.ready,
+  ];
+  let done = 0;
+  const step = () => { done++; if (bar) bar.style.width = Math.max(4, Math.round(done / jobs.length * 100)) + '%'; };
+  await Promise.race([Promise.all(jobs.map(j => Promise.resolve(j).then(step, step))), new Promise(r => setTimeout(r, 15000))]);
+  clearInterval(tipTimer);
+  if (bar) bar.style.width = '100%';
+  await new Promise(r => setTimeout(r, 250));
+  const bootEl = document.getElementById('boot');
+  if (bootEl) { bootEl.classList.add('done'); setTimeout(() => bootEl.remove(), 500); }
+}
 import { showHub } from './ui/hub.js';
 import { startRun } from './run.js';
 import { playIntro as playOldIntro } from './ui/cutscene.js';
@@ -43,17 +65,21 @@ function firstAdventure() {
 function boot() {
   if (!S.introSeen) {
     // splash so the first tap also unlocks sound
-    const splash = el('div', { class: 'cutscene title-splash', style: { alignItems: 'center', justifyContent: 'center', gap: '18px', background: 'radial-gradient(circle at 50% 35%, #5a35a8, #1d1230)', padding: '0 0 env(safe-area-inset-bottom)' } },
-      el('img', { src: 'assets/title.webp', style: { width: '100%', maxHeight: '72vh', objectFit: 'contain', borderTop: '4px solid #2b1d14', borderBottom: '4px solid #2b1d14' } }),
-      el('button', { class: 'btn gold big', onclick: () => { initAudio(); splash.remove(); playIntro(() => { S.introSeen = true; S.tut.stage = 'firstRun'; save(); firstAdventure(); }); } }, '▶ PLAY'),
-      el('div', { style: { color: '#cbb9f0', fontSize: '12px', marginTop: '18px' } }, 'Happy Birthday Arlo! 🎂'));
+    const go = () => { initAudio(); splash.classList.add('leaving'); setTimeout(() => { splash.remove(); playIntro(() => { S.introSeen = true; S.tut.stage = 'firstRun'; save(); firstAdventure(); }); }, 350); };
+    const sparkles = el('div', { class: 'ts-sparkles' }, ...Array.from({ length: 14 }, (_, i) => el('i', { style: { left: (5 + (i * 37) % 90) + '%', top: (8 + (i * 53) % 80) + '%', animationDelay: (i * 0.37 % 3).toFixed(2) + 's' } })));
+    const splash = el('div', { class: 'title-splash' },
+      el('div', { class: 'ts-bg' }), sparkles,
+      el('div', { class: 'ts-art' }, el('img', { src: 'assets/title.webp', alt: "Arlo's Awesome Adventure" })),
+      el('div', { class: 'ts-bottom' },
+        el('button', { class: 'btn gold big ts-play', onclick: go }, el('span', { class: 'ts-tri' }), 'PLAY'),
+        el('div', { class: 'ts-ribbon' }, 'Happy Birthday Arlo!')));
     document.getElementById('overlay').append(splash);
     return;
   }
   if (S.tut.stage === 'story' || S.tut.stage === 'firstRun') return firstAdventure();
   goHub();
 }
-boot();
+loadEverything().then(boot);
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

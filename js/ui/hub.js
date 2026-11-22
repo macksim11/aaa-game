@@ -28,7 +28,7 @@ export function showHub(opts = {}) {
   playMusic('hub');
   const root = document.getElementById('screen'); root.innerHTML = '';
   const st = heroStats(); const belt = beltInfo();
-  const avatar = el('div', { class: 'avatar' }, canvasBox(44, 44, (ctx, w, h) => { if (!drawHeadshot(ctx, 'chars/arlo', w, h, { belt: false })) drawPerson(ctx, w / 2 - 2, h + 22, 0.62, arloLook(S, belt.color), { t: 0, noShadow: true }); }, true));
+  const avatar = el('div', { class: 'avatar' }, el('img', { src: 'assets/ui/face_arlo.webp', alt: 'Arlo' }));
   const top = el('div', { class: 'topbar' },
     el('div', { class: 'who' }, avatar, el('div', {}, el('div', { class: 'nm' }, S.name), el('div', { class: 'belt' }, el('span', { class: 'belt-swatch', style: { background: belt.color } }), belt.name), el('div', { class: 'power' }, '⚡', fmt(st.power)))),
     el('div', { class: 'cur' }, icon('coin', 20, '🪙'), ' ', fmt(S.coins)), el('div', { class: 'cur' }, icon('gem', 20, '💎'), ' ', fmt(S.gems)));

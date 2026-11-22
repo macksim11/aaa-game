@@ -11,13 +11,28 @@
 <meta name="apple-mobile-web-app-title" content="AAA">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/favicon-48.png" sizes="48x48">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+  /* loading screen: inline so it shows instantly, before anything else downloads */
+  #boot { position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: radial-gradient(circle at 50% 35%, #5a35a8, #1d1230 70%); color: #fff; font-family: 'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif; transition: opacity .45s; }
+  #boot.done { opacity: 0; pointer-events: none; }
+  #boot img { width: 132px; height: 132px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,.5), 0 0 0 4px rgba(255,255,255,.15); animation: bootBob 1.6s ease-in-out infinite; }
+  @keyframes bootBob { 50% { transform: translateY(-8px) scale(1.03); } }
+  #boot .t { font-weight: 700; font-size: 22px; letter-spacing: .5px; text-shadow: 0 2px 0 #2a1a3e; }
+  #boot .bar { width: min(260px, 70vw); height: 16px; border-radius: 999px; background: rgba(0,0,0,.4); border: 2px solid rgba(255,255,255,.25); overflow: hidden; }
+  #boot .bar i { display: block; height: 100%; width: 4%; border-radius: 999px; background: linear-gradient(#ffe680, #ffc531 55%, #e88f00); transition: width .25s; }
+  #boot .tip { font-size: 13px; opacity: .75; max-width: 80vw; text-align: center; min-height: 18px; }
+</style>
 </head>
 <body>
+<div id="boot"><img src="icons/icon-192.png" alt=""><div class="t">Arlo's Awesome Adventure</div><div class="bar"><i id="bootbar"></i></div><div class="tip" id="boottip">Loading...</div></div>
+<div id="rotate"><img src="icons/icon-192.png" alt=""><div>Turn your phone upright to play!</div></div>
 <div id="app">
   <div id="screen"></div>
   <div id="overlay"></div>

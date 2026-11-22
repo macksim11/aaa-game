@@ -94,6 +94,6 @@ const ICON_CACHE = [];
 export async function preloadIcons() {
   try {
     const names = await (await fetch('assets/icons/list.json')).json();
-    for (const n of names) { const im = new Image(); im.decoding = 'async'; im.src = `assets/icons/${n}.webp`; ICON_CACHE.push(im); im.decode?.().catch(() => {}); }
+    await Promise.all(names.map(n => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = `assets/icons/${n}.webp`; ICON_CACHE.push(im); })));
   } catch {}
 }
