@@ -3,7 +3,15 @@ export const randi = (a, b) => Math.floor(rand(a, b + 1));
 export const chance = p => Math.random() < p;
 export const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-export const sleep = ms => new Promise(r => setTimeout(r, ms));
+// ---- game pause: every game timer (sleep) and the battle scene stop while paused ----
+export const GAME = { paused: false };
+export function setPaused(p) { GAME.paused = !!p; }
+// sleep that only counts time while the game is NOT paused
+export const sleep = ms => new Promise(r => {
+  let left = ms, last = performance.now();
+  const tick = () => { const now = performance.now(); if (!GAME.paused) left -= now - last; last = now; if (left <= 0) r(); else setTimeout(tick, Math.min(60, Math.max(4, left))); };
+  setTimeout(tick, Math.min(60, Math.max(0, ms)));
+});
 export function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 export function weighted(items, w = x => x.weight ?? 1) {
   const total = items.reduce((s, x) => s + w(x), 0);

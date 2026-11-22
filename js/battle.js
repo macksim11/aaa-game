@@ -1,4 +1,4 @@
-import { chance, rand } from './util.js';
+import { chance, rand, sleep } from './util.js';
 import { PETS, petLevelMult } from './data/pets.js';
 import { sfx } from './audio.js';
 import { BAL } from './data/balance.js';
@@ -9,7 +9,7 @@ export async function fight(ctx, enemies, { boss = false, elite = false } = {}) 
   const { scene, run } = ctx;
   const S = run.stats; // live derived stats (recalculated by run)
   // battlePace > 1 slows every beat of the fight so a kid can follow each exchange
-  const wait = ms => new Promise(r => setTimeout(r, ms * BAL.battlePace / scene.speed));
+  const wait = ms => sleep(ms * BAL.battlePace / scene.speed);   // pause-aware
   const hero = ctx.hero;
   const maxRounds = (boss || elite) ? 15 : 25;
   let round = 0;

@@ -6,7 +6,7 @@ import { FAMILY, RESCUE_ORDER, PAPI_MEALS } from '../data/family.js';
 import { PETS, FAMILY_PET_ORDER, EGG_TABLE, EGG_COST, petLevelCost, PET_MAX_LEVEL, petLevelMult } from '../data/pets.js';
 import { MOUNTS } from '../data/mounts.js';
 import { GEAR, SLOTS, SLOT_NAMES, SLOT_ICONS, RARITIES, RARITY_NAMES, CHESTS, itemStats, itemPower, maxLevel, enhanceCost, randomGearId } from '../data/gear.js';
-import { drawPerson, arloLook } from '../art/people.js';
+import { drawPerson, arloLook, arloSheetId, arloWeapon } from '../art/people.js';
 import { drawPet } from '../art/animals.js';
 import { drawMount } from '../art/mounts.js';
 import { drawMob } from '../art/mobs.js';
@@ -54,7 +54,7 @@ async function startTour() {
   tourRunning = true;
   const openTab = id => { if (!S.tut.open.includes(id)) S.tut.open.push(id); save(); refresh(); };
   const steps = [
-    { sel: '.home-scene canvas', pad: -4, text: "Oh sweetheart, you're back! Those minions were tough... but every hero gets knocked down sometimes. Welcome to <b>our house</b>, your base camp!" },
+    { sel: '.home-scene canvas', pad: -4, text: "Oh sweetheart, you're back! Those minions were tough... but every hero gets knocked down sometimes. Welcome to <b>our house</b>, your base camp! <b>Swipe</b> left and right to look around. Everyone you rescue gets their own spot!" },
     { sel: '.topbar .cur', text: 'You brought home <b>coins</b> from your adventure! The further you get, the more you earn. Let me show you how to use them.' },
     { before: () => openTab('belts'), sel: '.navbar [data-tab=belts]', tap: true, text: 'I just unlocked your <b>Belts</b>! Tap it.' },
     { sel: '.upg-cards', tap: () => S.coins >= talentCost(), tapSel: '.upg-cards .btn', text: 'Train here with coins: <b>Health</b>, <b>Power</b> and <b>Guard</b>. Every training makes you stronger forever. Try one, tap a gold button!' },
@@ -120,6 +120,7 @@ function homeTab(body, { onStart, onReplayIntro }) {
   const hits = [];
   drawHome(canvas, hits);
   canvas.addEventListener('click', e => {
+    if (canvas.dataset.dragged) { canvas.dataset.dragged = ''; return; }   // that was a swipe, not a tap
     const r = canvas.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top;
     const h = [...hits].reverse().find(h => x > h.x - h.w / 2 && x < h.x + h.w / 2 && y > h.y - h.h && y < h.y);
     if (!h) return; sfx('click');
@@ -138,69 +139,88 @@ function sideBtn(ic, label, fn, dot) {
 }
 
 const FAMILY_SHEETS = ['arlo', 'mom', 'papa', 'alyzee', 'eveah', 'emery', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'];
-// Where everyone stands in Nana & Papi's room, in coordinates of the room picture
-// (ix = 0..1 across the picture, iy = 0..1 down it; iy is where their feet touch the floor)
+// Nana & Papi's house is one long room you can swipe across.
+// Spots are in coordinates of the panorama picture (ix = 0..1 across, iy = 0..1 down = where feet touch the floor).
 const HOME_SPOTS = {
-  papi: { ix: 0.24, iy: 0.81 },   // at the stove
-  nana: { ix: 0.43, iy: 0.73 },   // by the window
-  mom: { ix: 0.6, iy: 0.74 }, papa: { ix: 0.73, iy: 0.76 }, emery: { ix: 0.87, iy: 0.79 },
-  alyzee: { ix: 0.3, iy: 0.91 }, eveah: { ix: 0.72, iy: 0.92 },
-  arlo: { ix: 0.5, iy: 0.94 },
+  papi: { ix: 0.135, iy: 0.87, anim: 'action' },   // cooking at the stove
+  mom: { ix: 0.27, iy: 0.88 },                     // by the dining table
+  nana: { ix: 0.405, iy: 0.86 },                   // by the window
+  arlo: { ix: 0.52, iy: 0.95 },                    // middle of the room, on the rug
+  papa: { ix: 0.655, iy: 0.84, anim: 'action' },   // at the piano
+  alyzee: { ix: 0.765, iy: 0.85 },                 // at the vanity mirror
+  eveah: { ix: 0.875, iy: 0.87, anim: 'action' },  // at the microphone, singing
+  emery: { ix: 0.95, iy: 0.89 },                   // by the front door
 };
-const PET_SPOTS = [[0.22, 0.97], [0.8, 0.98], [0.1, 0.99], [0.92, 0.99], [0.33, 1.0], [0.68, 1.0], [0.16, 0.93], [0.86, 0.94], [0.42, 1.0], [0.58, 1.0], [0.5, 1.0]];
-function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH }) {
-  // The room picture fills the area above the chapter card, so its floor is always visible.
+const PET_SPOTS = [[0.555, 0.95], [0.79, 0.95], [0.36, 0.96], [0.62, 0.98], [0.2, 0.96], [0.71, 0.97], [0.46, 0.98], [0.87, 0.97], [0.3, 0.99], [0.06, 0.97], [0.98, 0.98]];
+let homeCam = null;   // camera x offset (persists while the hub is open)
+function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH, cam }) {
+  const wide = bg.naturalWidth / bg.naturalHeight > 1.5;
   const sh = Math.max(stageH, h * 0.5);
-  // never zoom in so far that the sides get cut off (tall phones / laptop windows): extend the wall upward instead
-  const sc = Math.min(Math.max(w / bg.naturalWidth, sh / bg.naturalHeight), w * 1.22 / bg.naturalWidth);
+  // fill the height above the chapter card; the room is wider than the screen, so you can swipe
+  const sc = wide ? sh * 1.06 / bg.naturalHeight : Math.max(w / bg.naturalWidth, sh * 1.12 / bg.naturalHeight);
   const bw = bg.naturalWidth * sc, bh = bg.naturalHeight * sc;
-  const ox = (w - bw) / 2, oy = sh - bh;
+  cam.max = Math.max(0, bw - w);
+  if (cam.x == null) cam.x = Math.min(cam.max, Math.max(0, HOME_SPOTS.arlo.ix * bw - w / 2));
+  cam.x = Math.min(cam.max, Math.max(0, cam.x));
+  const ox = wide ? -cam.x : (w - bw) / 2, oy = sh * (wide ? 1.0 : 0.96) - bh;
   ctx.fillStyle = '#5a3418'; ctx.fillRect(0, 0, w, h);
   if (oy > 0) ctx.drawImage(bg, 0, 0, bg.naturalWidth, 3, ox, 0, bw, oy + 2);
   ctx.drawImage(bg, ox, oy, bw, bh);
   const P = (ix, iy) => [ox + ix * bw, oy + iy * bh];
-  // perspective: people further back are smaller; an adult is ~31% of the picture height
-  const adult = iy => bh * 0.31 * (0.82 + (iy - 0.72) * 1.5);
+  const adult = iy => bh * (wide ? 0.36 : 0.31) * (0.85 + (iy - 0.84) * 1.4);
   const add = (id, x, y, w2, h2, extra = {}) => hits.push({ id, x, y, w: w2, h: h2, ...extra });
   const drawn = [];
+  const onScreen = x => x > -150 && x < w + 150;
   const person = (key, anim, tt, facing = 1) => {
-    const sp = HOME_SPOTS[key]; const [x, y] = P(sp.ix, sp.iy);
+    const sp = HOME_SPOTS[key]; const [x, y] = P(sp.ix, sp.iy); if (!onScreen(x)) return;
     drawn.push({ y, f: () => { const hh = adult(sp.iy) * spriteHeight('chars/' + key) / 112; drawAnim(ctx, 'chars/' + key, anim, x, y, hh, { t: tt, facing }); add(key, x, y, hh * 0.5, hh); } });
   };
-  const wave = (i, a = 'idle') => Math.sin(t * 0.5 + i * 1.7) > 0.9 ? 'wave' : Math.sin(t * 0.37 + i) > 0.93 ? 'action' : a;
+  const idleish = (i, a = 'idle') => Math.sin(t * 0.5 + i * 1.7) > 0.9 ? 'wave' : a;
   person('papi', 'action', t);
   person('nana', Math.sin(t * 0.6) > 0.85 ? 'wave' : 'idle', t + 2);
-  fam.forEach((id, i) => person(id, wave(i), t + i * 1.3, HOME_SPOTS[id].ix > 0.5 ? -1 : 1));
+  fam.forEach((id, i) => { const sp = HOME_SPOTS[id]; const a = sp.anim && Math.sin(t * 0.3 + i) > -0.2 ? sp.anim : idleish(i); person(id, a, t + i * 1.3, sp.ix > HOME_SPOTS.arlo.ix ? -1 : 1); });
   // Arlo (or Arlo on his ride)
   { const sp = HOME_SPOTS.arlo; const [x, y] = P(sp.ix, sp.iy); const ride = S.mounts.equipped;
     drawn.push({ y, f: () => {
       if (ride && sheetReady('rides/' + ride)) { const rh = adult(sp.iy) * spriteHeight('rides/' + ride) / 112; drawAnim(ctx, 'rides/' + ride, 'ride', x, y, rh, { t, frame: 0 }); add('arlo', x, y, rh * 0.7, rh); }
-      else { if (ride) preloadSheets(['rides/' + ride]); const ah = adult(sp.iy) * 100 / 112; drawAnim(ctx, 'chars/arlo', Math.sin(t * 0.4) > 0.92 ? 'victory' : 'idle', x, y, ah, { t }); add('arlo', x, y, ah * 0.5, ah); }
+      else { if (ride) preloadSheets(['rides/' + ride]); const ah = adult(sp.iy) * 100 / 112; drawAnim(ctx, 'chars/' + arloSheetId(S), Math.sin(t * 0.4) > 0.92 ? 'victory' : 'idle', x, y, ah, { t, weapon: arloWeapon(S) }); add('arlo', x, y, ah * 0.5, ah); }
     } }); }
-  // pets wander on the floor in front
+  // pets wander on the floor and nap in the pet beds
   pets.forEach((id, i) => {
     const [ix, iy] = PET_SPOTS[i % PET_SPOTS.length]; const vx = Math.cos(t * 0.45 + i * 2);
-    const [bx, y] = P(ix, iy); const x = bx + Math.sin(t * 0.45 + i * 2) * 12 * u;
+    const [bx, y] = P(ix, iy); if (!onScreen(bx)) return; const x = bx + (i < 2 ? 0 : Math.sin(t * 0.45 + i * 2) * 12 * u);
     drawn.push({ y, f: () => {
       const ph = adult(iy) * spriteHeight('chars/' + id) / 112;
-      if (FAMILY_SHEETS.includes(id)) drawAnim(ctx, 'chars/' + id, Math.abs(vx) > 0.6 ? 'run' : (i % 3 === 0 ? 'sit' : 'idle'), x, y, ph, { t: t + i, facing: vx > 0 ? 1 : -1 });
+      const anim = i < 2 ? 'sit' : (Math.abs(vx) > 0.6 ? 'run' : 'idle');
+      if (FAMILY_SHEETS.includes(id)) drawAnim(ctx, 'chars/' + id, anim, x, y, ph, { t: t + i, facing: i < 2 ? 1 : (vx > 0 ? 1 : -1) });
       else drawPet(ctx, id, x, y, 0.62 * u, { t: t + i, facing: vx > 0 ? 1 : -1 });
       add(id, x, y, ph * 1.2, ph);
     } });
   });
   drawn.sort((a, b) => a.y - b.y).forEach(d => d.f());   // back to front
-  // missing family: "?" picture frames on the wall above the window
+  // missing family: "?" picture frames on the wall
   missing.forEach((id, i) => {
-    const fs = Math.max(26, bh * 0.05), [cx] = P(0.5, 0); const x = cx + (i - (missing.length - 1) / 2) * fs * 1.25, y = Math.max(oy + bh * 0.2, 58);
+    const fs = Math.max(26, bh * 0.07), [cx, cy] = wide ? P(0.13 + i * 0.03, 0.2) : P(0.5, 0.2);
+    const x = wide ? cx : cx + (i - (missing.length - 1) / 2) * fs * 1.25, y = Math.max(cy, 58);
     rr(ctx, x - fs * 0.4, y - fs * 0.5, fs * 0.8, fs, 4, '#6b4424', 2.5);
     rr(ctx, x - fs * 0.28, y - fs * 0.37, fs * 0.56, fs * 0.74, 2, '#2e2440', 1.5);
     text(ctx, '?', x, y + 1, fs * 0.5, '#ffd23a', 'center', null);
     add('missing', x, y + fs * 0.5, fs, fs, { who: FAMILY[id].full, ch: FAMILY[id].chapter });
   });
+  // swipe hints
+  if (wide && cam.max > 0) {
+    const a = 0.45 + Math.sin(t * 3) * 0.25;
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(42,26,62,.8)'; ctx.lineWidth = 3;
+    const cy = sh * 0.55;
+    const chev = (x, dir) => { ctx.beginPath(); ctx.moveTo(x, cy - 14); ctx.lineTo(x + 12 * dir, cy); ctx.lineTo(x, cy + 14); ctx.lineTo(x + 5 * dir, cy); ctx.closePath(); ctx.stroke(); ctx.fill(); };
+    if (cam.x > 4) chev(14, -1);
+    if (cam.x < cam.max - 4) chev(w - 14, 1);
+    ctx.restore();
+  }
 }
 
 function drawHome(canvas, hits) {
-  preloadSheets(FAMILY_SHEETS.map(k => 'chars/' + k));
+  preloadSheets([...FAMILY_SHEETS.map(k => 'chars/' + k), 'chars/' + arloSheetId(S)]);
   const ctx = canvas.getContext('2d');
   const dpr = Math.min(2, devicePixelRatio || 1);
   const t0 = performance.now();
@@ -208,6 +228,14 @@ function drawHome(canvas, hits) {
   const fam = RESCUE_ORDER.filter(id => S.rescued.family.includes(id));
   const missing = RESCUE_ORDER.filter(id => !S.rescued.family.includes(id));
   const pets = Object.keys(S.pets.owned);
+  // swipe / drag to look around the house (with a little momentum)
+  const cam = homeCam || (homeCam = { x: null, v: 0, max: 0 });
+  let drag = null;
+  canvas.style.touchAction = 'pan-y';
+  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, last: e.clientX, moved: 0, t: performance.now() }; cam.v = 0; canvas.setPointerCapture?.(e.pointerId); });
+  canvas.addEventListener('pointermove', e => { if (!drag) return; const dx = e.clientX - drag.last; drag.last = e.clientX; drag.moved += Math.abs(dx); cam.x = (cam.x || 0) - dx; cam.v = -dx; });
+  const end = () => { if (!drag) return; canvas.dataset.dragged = drag.moved > 8 ? '1' : ''; drag = null; };
+  canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
   function frame(now) {
     if (!canvas.isConnected) return;
     const r = canvas.getBoundingClientRect(); const w = r.width, h = r.height;
@@ -215,8 +243,8 @@ function drawHome(canvas, hits) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const t = Math.max(0, (now - t0) / 1000); const u = h / 330;
     hits.length = 0;
-    const hubBg = bgImage('bg_hub');
-    if (hubBg && sheetReady('chars/arlo')) { const card = canvas.parentElement?.querySelector('.chapter-card'); const stageH = card ? card.getBoundingClientRect().top - r.top + 24 : h * 0.72; drawHomeArt(ctx, w, h, t, u, hubBg, hits, { fam, missing, pets, belt, stageH }); requestAnimationFrame(frame); return; }
+    const hubBg = bgImage('bg_hub_wide') || bgImage('bg_hub');
+    if (hubBg && sheetReady('chars/' + arloSheetId(S))) { const card = canvas.parentElement?.querySelector('.chapter-card'); const stageH = card ? card.getBoundingClientRect().top - r.top + 24 : h * 0.72; drawHomeArt(ctx, w, h, t, u, hubBg, hits, { fam, missing, pets, belt, stageH, cam }); if (!drag) { cam.x += cam.v; cam.v *= 0.9; if (Math.abs(cam.v) < 0.1) cam.v = 0; } requestAnimationFrame(frame); return; }
     // room
     const fy = h * 0.8;
     ctx.fillStyle = '#f3dcb6'; ctx.fillRect(0, 0, w, fy);

@@ -75,7 +75,15 @@ const pickR = a => a[Math.floor(Math.random() * a.length)];
 function clickAny() {
   const ov = doc.getElementById('overlay');
   const comic = ov.querySelector('.cutscene .skip-btn'); if (comic) { comic.click(); return true; }
-  const opts = [...ov.querySelectorAll('.skill-opt')]; if (opts.length) { pickR(opts).click(); return true; }
+  const opts = [...ov.querySelectorAll('.skill-opt')];
+  if (opts.length) {
+    if (process.env.POLICY === 'smart') {      // pick the strongest-looking skill: rarity first, then offensive keywords
+      const R = { mythic: 6, legendary: 5, epic: 4, rare: 3, great: 2, common: 1 };
+      const score = b => { const t = b.textContent.toLowerCase(); let v = 0; for (const [k, n] of Object.entries(R)) if (t.includes(k)) v = Math.max(v, n * 10); for (const w of ['atk', 'crit', 'heal', 'lifesteal', 'combo', 'hp', 'damage']) if (t.includes(w)) v += 2; return v; };
+      opts.sort((x, y) => score(y) - score(x))[0].click();
+    } else pickR(opts).click();
+    return true;
+  }
   const mb = [...ov.querySelectorAll('.modal-bg .btn:not([disabled])')];
   if (mb.length) { (mb.find(b => /green|gold/.test(b.className)) || mb[mb.length - 1]).click(); return true; }
   if (ov.querySelector('.pinball')) return false;          // pinball ends by itself

@@ -4,6 +4,7 @@ import { el, watchIcons, preloadIcons, pick } from './util.js';
 watchIcons(document.getElementById('app') || document.body);
 import { initAudio } from './audio.js';
 import { preloadSheets } from './art/sheets.js';
+import { arloSheetId } from './art/people.js';
 
 const CHAR_SHEETS = ['arlo', 'emery', 'mom', 'papa', 'alyzee', 'eveah', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'].map(k => 'chars/' + k);
 const loadImg = src => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = src; });
@@ -16,9 +17,9 @@ async function loadEverything() {
   if (tip) tip.textContent = pick(tips);
   const tipTimer = setInterval(() => { if (tip) tip.textContent = pick(tips); }, 1600);
   const jobs = [
-    ...CHAR_SHEETS.map(k => preloadSheets([k])),
+    ...CHAR_SHEETS.map(k => preloadSheets([k])), preloadSheets(['chars/' + arloSheetId(S)]),
     preloadIcons(),
-    loadImg('assets/title.webp'), loadImg('assets/bg/bg_hub.webp'), loadImg('assets/ui/face_arlo.webp'), loadImg('assets/ui/face_nana.webp'),
+    loadImg('assets/title.webp'), loadImg('assets/bg/bg_hub_wide.webp'), loadImg('assets/ui/face_arlo.webp'), loadImg('assets/ui/face_nana.webp'),
     document.fonts?.ready,
   ];
   let done = 0;

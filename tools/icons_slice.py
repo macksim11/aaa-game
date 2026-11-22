@@ -1,6 +1,23 @@
 # Cut 5x4 transparent icon sheets into assets/icons/<name>.webp (reading order)
 import sys, os
+import numpy as np
 from PIL import Image
+from scipy import ndimage
+
+def clean(cell):
+    # keep the icon itself; drop stray fragments of neighbouring icons (small pieces touching the cell edge)
+    a = np.array(cell); alpha = a[..., 3] > 24
+    lab, n = ndimage.label(ndimage.binary_dilation(alpha, iterations=2))
+    if n <= 1: return cell
+    sizes = ndimage.sum(alpha, lab, range(1, n + 1)); big = sizes.max()
+    H, W = alpha.shape; keep = np.zeros_like(alpha)
+    for i in range(1, n + 1):
+        comp = lab == i; ys, xs = np.nonzero(comp)
+        edge = ys.min() <= 2 or xs.min() <= 2 or ys.max() >= H - 3 or xs.max() >= W - 3
+        if sizes[i - 1] == big or (sizes[i - 1] > big * 0.12 and not edge) or (sizes[i - 1] > big * 0.35):
+            keep |= comp
+    a[..., 3] = np.where(keep, a[..., 3], 0)
+    return Image.fromarray(a)
 NAMES = {
  'icons_ui': 'shop gear home pets belts look rides menu gift papi pinball coin gem food egg chest_wood chest_gold chest_diamond settings skills',
  'icons_skill1': 'star star_plus heal_star rage_star bolt_star soccer soccer_plus thunder power_punch iron_body big_lunch combo counter eagle_eye crit_power quick_feet second_wind snack lucky_coins fast_learner',
@@ -20,6 +37,7 @@ for sheet, names in NAMES.items():
     for i, n in enumerate(names):
         r, c = divmod(i, 5)
         cell = im.crop((c * W // 5, r * H // 4, (c + 1) * W // 5, (r + 1) * H // 4))
+        cell = clean(cell)
         bb = cell.getbbox()
         if bb: cell = cell.crop(bb)
         cell.thumbnail((160, 160), Image.Resampling.LANCZOS)

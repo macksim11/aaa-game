@@ -13,13 +13,15 @@ export function loadSheet(key) {
     if (!j) return null;
     const anims = {};
     await Promise.all(Object.entries(j.anims).map(async ([name, list]) => {
-      anims[name] = await Promise.all(list.map(fr => new Promise(res => {
-        const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = base + fr.f;
+      anims[name] = await Promise.all(list.map((fr, k) => new Promise(res => {
+        const im = new Image(); im.key = `${name}_${k}`; im.beltAlways = !!fr.beltAlways; im.onload = () => res(im); im.onerror = () => res(null); im.src = base + fr.f;
         if (fr.belt) { const bm = new Image(); bm.onload = () => { im.belt = bm; }; bm.src = base + fr.belt; }  // recolourable belt mask
       })));
       anims[name] = anims[name].filter(Boolean);
     }));
-    SHEETS[key] = { refHeight: j.refHeight || 300, anims };
+    // hand positions for holding weapons (Arlo and his armor variants)
+    const hands = key.startsWith('chars/arlo') ? await fetch(base + 'hands.json').then(r => r.ok ? r.json() : null).catch(() => null) : null;
+    SHEETS[key] = { refHeight: j.refHeight || 300, anims, hands };
     return SHEETS[key];
   }).catch(() => null);
   return LOADING[key];
@@ -27,16 +29,32 @@ export function loadSheet(key) {
 // ---- Arlo's belt colour (repaints the white belt on his sprite) ----
 let BELT_COLOR = null; const TINTS = new Map();
 export function setBeltColor(c) { BELT_COLOR = c && c.toLowerCase() !== '#f4f4f4' ? c : null; }
-function beltTint(img) {
-  const key = img.src + '|' + BELT_COLOR; let c = TINTS.get(key);
+function beltTint(img, color) {
+  const key = img.src + '|' + color; let c = TINTS.get(key);
   if (c) return c;
   c = document.createElement('canvas'); c.width = img.belt.naturalWidth; c.height = img.belt.naturalHeight;
   const x = c.getContext('2d');
   x.drawImage(img.belt, 0, 0);
-  x.globalCompositeOperation = 'multiply'; x.fillStyle = BELT_COLOR; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
   x.globalCompositeOperation = 'destination-in'; x.drawImage(img.belt, 0, 0);
-  if (/^#(1|2)/.test(BELT_COLOR)) { x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.18; x.drawImage(img.belt, 0, 0); } // keep a little shine on dark belts
+  if (/^#(1|2)/.test(color)) { x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.18; x.drawImage(img.belt, 0, 0); } // keep a little shine on dark belts
   TINTS.set(key, c); return c;
+}
+// ---- weapons drawn in Arlo's hand ----
+// grip = where the handle is in the weapon picture (0..1), nat = direction the weapon points in its picture (deg, 0 = up)
+const WEAPON_GRIP = { hockey_stick: { grip: [0.82, 0.14], nat: 225 }, bo_staff: { grip: [0.5, 0.5], nat: 45, size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, size: 0.8 }, diamond_pick: { grip: [0.12, 0.9], nat: 45 } };
+const WEAPON_IMG = {};
+function weaponImg(id) {
+  if (WEAPON_IMG[id] !== undefined) return WEAPON_IMG[id];
+  WEAPON_IMG[id] = null; const im = new Image(); im.onload = () => { WEAPON_IMG[id] = im; }; im.src = `assets/icons/g_${id}.webp`; return null;
+}
+function drawWeapon(ctx, id, hx, hy, angleDeg, size) {
+  const im = weaponImg(id); if (!im) return;
+  const g = WEAPON_GRIP[id] || { grip: [0.18, 0.85], nat: 45 };
+  const S = size * (g.size || 1);
+  ctx.save(); ctx.translate(hx, hy); ctx.rotate((angleDeg - g.nat) * Math.PI / 180);
+  ctx.drawImage(im, -g.grip[0] * S, -g.grip[1] * S, S, S);
+  ctx.restore();
 }
 export function preloadSheets(keys) { return Promise.all(keys.map(loadSheet)); }
 
@@ -100,7 +118,9 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   if (!opts.noShadow) { ctx.save(); ctx.globalAlpha *= 0.2; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(0, 0, Math.min(w, h * 0.9) * 0.4, h * 0.06, 0, 0, 7); ctx.fill(); ctx.restore(); }
   if (opts.filter) ctx.filter = opts.filter;
   ctx.drawImage(img, -w / 2, -ih, w, ih);
-  if (img.belt && BELT_COLOR && opts.belt !== false && key === 'chars/arlo') ctx.drawImage(beltTint(img), -w / 2, -ih, w, ih);
+  const beltCol = BELT_COLOR || (img.beltAlways ? '#f4f4f4' : null);   // marker belts are always repainted (even white)
+  if (img.belt && beltCol && opts.belt !== false && (key.startsWith('chars/arlo') || key.startsWith('rides/'))) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
+  if (opts.weapon && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.5); }
   if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(-w / 2, -ih, w, ih); }
   ctx.restore();
   return true;

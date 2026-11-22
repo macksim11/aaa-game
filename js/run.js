@@ -1,4 +1,4 @@
-import { el, rich, pick, weighted, chance, randi, sleep, shuffle, fmt, toast, icon } from './util.js';
+import { el, rich, pick, weighted, chance, randi, sleep, shuffle, fmt, toast, icon, setPaused } from './util.js';
 import { S, save } from './state.js';
 import { heroStats, beltInfo } from './stats.js';
 import { Scene } from './scene.js';
@@ -10,7 +10,7 @@ import { PETS, FAMILY_PET_ORDER } from './data/pets.js';
 import { MOUNTS } from './data/mounts.js';
 import { FAMILY } from './data/family.js';
 import { GEAR, randomGearId } from './data/gear.js';
-import { arloLook } from './art/people.js';
+import { arloLook, arloSheetId } from './art/people.js';
 import { fight } from './battle.js';
 import { BAL, coinMult as chapterCoinMult } from './data/balance.js';
 import { sfx, playMusic } from './audio.js';
@@ -108,11 +108,11 @@ export function startRun(chId, onExit) {
   root.append(runEl); runEl.append(skillsBtn);
 
   const scene = new Scene(canvas, ch.theme);
-  preloadSheets(['chars/arlo', 'chars/emery', ...(S.mounts.equipped ? [`rides/${S.mounts.equipped}`] : []), ...S.pets.equipped.filter(id => SHEET_PETS.includes(id)).map(id => `chars/${id}`), `bosses/${ch.boss}`, ...ch.enemies.map(k => `mobs/${ENEMIES[k].art}`), `mobs/${ENEMIES[ch.elite].art}`]);
+  preloadSheets(['chars/' + arloSheetId(S), 'chars/emery', ...(S.mounts.equipped ? [`rides/${S.mounts.equipped}`] : []), ...S.pets.equipped.filter(id => SHEET_PETS.includes(id)).map(id => `chars/${id}`), `bosses/${ch.boss}`, ...ch.enemies.map(k => `mobs/${ENEMIES[k].art}`), `mobs/${ENEMIES[ch.elite].art}`]);
   scene.speed = S.settings.speed;
   const belt = beltInfo();
   const weaponItem = S.gear.items.find(i => i.uid === S.gear.slots.weapon);
-  const hero = scene.add({ kind: 'person', sheet: 'chars/arlo', look: arloLook(S, belt.color), x: 0, z: 5, walkPhase: 0, mount: S.mounts.equipped, weapon: weaponItem ? weaponItem.id : null, facing: 1 });
+  const hero = scene.add({ kind: 'person', sheet: 'chars/' + arloSheetId(S), look: arloLook(S, belt.color), x: 0, z: 5, walkPhase: 0, mount: S.mounts.equipped, weapon: weaponItem ? weaponItem.id : null, facing: 1 });
   const emery = S.rescued.family.includes('emery') ? scene.add({ kind: 'person', sheet: 'chars/emery', look: FAMILY.emery.look, x: 0, z: 3, walkPhase: 1, seed: 1.3 }) : null;
   const petActors = [];
   function addPetActor(id) {
@@ -322,6 +322,8 @@ export function startRun(chId, onExit) {
     updateUI();
   }
 
+  // a choice "costs" something if it takes coins or lowers HP / max HP / ATK / DEF
+  const costly = c => !!c.cost || Object.entries(c.effect || {}).some(([k, v]) => typeof v === 'number' && v < 0 && ['heal', 'maxHp', 'atk', 'def'].includes(k));
   async function doEvent(ev) {
     const cls = ev.kind === 'good' ? 'good' : ev.kind === 'bad' ? 'bad' : '';
     if (!ev.choices) {
@@ -338,7 +340,7 @@ export function startRun(chId, onExit) {
         const b = btn(c.label, i === 0 && ev.choices.length > 1 && !c.cost ? 'gold' : 'gold', () => res(c), c.sub || '');
         if (c.cost && run.coins < c.cost) { b.disabled = true; b.querySelector('.sub').textContent = `Need ${c.cost} coins`; }
         return b;
-      }).concat(ev.choices.every(c => c.cost && run.coins < c.cost) ? [btn('Walk away', 'gray', () => res({ label: 'Walk away', effect: {}, result: "Not enough coins... you walk away. Maybe next time!" }), '')] : []));
+      }).concat(ev.choices.every(costly) ? [btn('No thanks', 'gray', () => res({ label: 'No thanks', effect: {}, result: ev.choices.every(c => c.cost && run.coins < c.cost) ? 'Not enough coins... you walk away. Maybe next time!' : 'You save your coins and keep walking.' }), '')] : []));
     });
     busy('...');
     if (choice.cost) { run.coins -= choice.cost; updateUI(); }
@@ -512,18 +514,20 @@ export function startRun(chId, onExit) {
     exit({ won: true, chapter: ch.id, rescued: fam });
   }
 
-  function exit(info) { scene.destroy(); onExit(info || {}); }
+  function exit(info) { setPaused(false); scene.destroy(); onExit(info || {}); }
 
   async function pauseMenu() {
     sfx('click');
+    setPaused(true);   // freeze battles, walking and animations until Resume
     const p = el('div', { class: 'panel' }, el('h2', {}, 'Paused'),
       el('div', { class: 'menu-list' },
-        el('button', { class: 'btn green', onclick: () => m.close() }, '▶ Resume'),
+        el('button', { class: 'btn green', style: { justifyContent: 'center' }, onclick: () => m.close() }, el('span', { class: 'ts-tri', style: { borderLeftWidth: '14px', borderTopWidth: '9px', borderBottomWidth: '9px' } }), ' Resume'),
         el('button', { class: 'btn blue', onclick: () => { m.close(); showSkills(); } }, '📖 My skills'),
-        el('button', { class: 'btn red', onclick: async () => { m.close(); if (await confirmModal('Give up?', 'You keep the coins you collected so far.', 'Give up', 'Keep going')) { run.over = false; defeat(); } } }, '🏳️ Give up')));
-    const m = modal(p, { dismissable: true });
+        el('button', { class: 'btn red', onclick: async () => { m.close(); setPaused(true); const yes = await confirmModal('Give up?', 'You keep the coins you collected so far.', 'Give up', 'Keep going'); setPaused(false); if (yes) { run.over = false; defeat(); } } }, '🏳️ Give up')));
+    const m = modal(p, { dismissable: true, onClose: () => setPaused(false) });
   }
   function showSkills() {
+    setPaused(true);
     const ids = Object.keys(run.skills);
     const grid = el('div', { class: 'skill-list' });
     ids.forEach(id => grid.append(el('div', { class: 'si', onclick: () => infoModal(SKILLS[id].name, rich(SKILLS[id].desc)) }, skillIcon(id, 52), SKILLS[id].name + (run.skills[id] > 1 ? ` x${run.skills[id]}` : ''))));
@@ -532,7 +536,7 @@ export function startRun(chId, onExit) {
       el('div', { class: 'stat-row', style: { fontSize: '12px' } },
         el('span', {}, `Crit ${Math.round(st.crit * 100)}%`), el('span', {}, `Combo ${Math.round(st.combo * 100)}%`), el('span', {}, `Counter ${Math.round(st.counter * 100)}%`), el('span', {}, `Dodge ${Math.round(Math.min(0.6, st.dodge) * 100)}%`)),
       el('div', { style: { textAlign: 'center', marginTop: '10px' } }, el('button', { class: 'btn gold small', onclick: () => m.close() }, 'Resume')));
-    const m = modal(p, { dismissable: true });
+    const m = modal(p, { dismissable: true, onClose: () => setPaused(false) });
   }
 
   // go!

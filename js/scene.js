@@ -1,3 +1,4 @@
+import { sleep, GAME } from './util.js';
 import { drawBackground, groundY } from './art/backgrounds.js';
 import { drawPerson } from './art/people.js';
 import { drawPet } from './art/animals.js';
@@ -18,7 +19,7 @@ export class Scene {
     this.speed = 1; this.running = true; this.overlayDraw = null;
     this.resize(); this._ro = new ResizeObserver(() => this.resize()); this._ro.observe(canvas);
     this.last = performance.now();
-    const loop = now => { if (!this.running) return; requestAnimationFrame(loop); const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000)); this.last = now; try { this.update(dt); this.draw(); } catch (e) { console.warn('frame skipped', e); } };
+    const loop = now => { if (!this.running) return; requestAnimationFrame(loop); const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000)); this.last = now; try { if (!GAME.paused) this.update(dt); this.draw(); } catch (e) { console.warn('frame skipped', e); } };
     requestAnimationFrame(loop);
   }
   destroy() { this.running = false; this._ro.disconnect(); }
@@ -130,7 +131,7 @@ export class Scene {
       drawAnim(ctx, a.sheet, anim === 'run' ? 'idle' : anim, seat.x + 4 * this.u, seat.y + h * 0.3, h * 0.92, { ...opts, noShadow: true });
     } else {
       const hop = anim === 'run' ? Math.abs(Math.sin(pose.t * 11)) * 3 * this.u : 0;
-      drawAnim(ctx, a.sheet, anim, x, y - hop, h, opts);
+      drawAnim(ctx, a.sheet, anim, x, y - hop, h, { ...opts, weapon: a.kind === 'person' ? a.weapon : null });
     }
     if (a.crown && a.kind === 'mob' && !a.boss) { text(ctx, '👑', x, y - h - 8, 16 * this.u, '#fff', 'center', null); }
   }
@@ -226,7 +227,7 @@ export class Scene {
         const x = x1 + (x2 - x1) * k, y = y1 + (y2 - y1) * k - Math.sin(k * Math.PI) * arc;
         d(ctx, x, y, f.age, ang);
       }, update: (f) => { if (!f.done && f.age >= f.life * 0.98) { f.done = true; res(); } } });
-      setTimeout(() => res(), (dur * 1000) / this.speed + 400);
+      sleep((dur * 1000) / this.speed + 400).then(res);
     });
   }
   beam(x1, y1, x2, y2, color = '#38f3e6', dur = 0.4) {

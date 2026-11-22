@@ -3,13 +3,13 @@
 //  Tuned with a headless bot that plays the whole game (see tools/sim/).
 //  Goal: each chapter takes several tries, and the only way to get
 //  stronger is to play (coins come from adventures).
-//  Simulated result (8 bot players): ~40 adventures to beat the game,
-//  2-3 tries for early chapters, 5-8 for the last ones, Black Belt near the end.
+//  Simulated result (8 bot players, random AND smart skill picks): ~50 adventures to beat the game,
+//  3-4 tries for chapter 1, 4-5 for chapter 2, 4-10 for later chapters, Black Belt near the end.
 // ============================================================
 export const BAL = {
   // how much tougher each chapter's monsters are (chapter 1 = 1)
-  chapterMult: [1, 1.7, 2.8, 4.4, 6.4, 11.0, 16.5, 21.0, 24.5, 28],
-  enemyHp: 1.75, enemyAtk: 1.85,
+  chapterMult: [1, 1.7, 3.0, 4.15, 6.8, 10.6, 15.8, 19.3, 24.4, 26.8],
+  enemyHp: 1.95, enemyAtk: 2.35,
   battlePace: 1.6,                               // >1 = slower, easier-to-follow fights (x1 speed)                  // global monster toughness
   // coins/XP scale with chapter at a slightly slower rate than monsters, so later chapters need a few more tries
   coinPow: 0.85,

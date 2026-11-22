@@ -134,7 +134,7 @@ export function drawPerson(ctx, x, y, s, L, pose = {}) {
     const key = 'chars/' + L.id;
     if (sheetReady(key)) {
       const anim = pose.attack > 0.2 ? 'punch' : pose.sad ? 'sad' : pose.armUp ? 'victory' : pose.wave ? 'wave' : pose.walk != null ? 'run' : 'idle';
-      drawAnim(ctx, key, anim, x, y, spriteHeight(key) * s, { t: pose.t, facing: pose.facing || 1, noShadow: pose.noShadow });
+      drawAnim(ctx, key, anim, x, y, spriteHeight(key) * s, { t: pose.t, facing: pose.facing || 1, noShadow: pose.noShadow, weapon: pose.weapon });
       return { headY: y - spriteHeight(key) * s, height: spriteHeight(key) * s };
     }
     loadSheet(key);
@@ -326,9 +326,16 @@ export function drawPerson(ctx, x, y, s, L, pose = {}) {
 }
 
 // convenience: Arlo with his saved look
+// Arlo's sprite set depends on the armor he wears (falls back to the base sprite)
+export const ARMOR_SHEETS = ['karate_gi', 'hoodie', 'leather_tunic', 'iron_chest', 'diamond_chest'];
+export function arloSheetId(save) {
+  const it = save.gear.items.find(i => i.uid === save.gear.slots.gi);
+  return it && ARMOR_SHEETS.includes(it.id) ? 'arlo_' + it.id : 'arlo';
+}
+export function arloWeapon(save) { const it = save.gear.items.find(i => i.uid === save.gear.slots.weapon); return it ? it.id : null; }
 export function arloLook(save, beltColor) {
   return {
-    id: 'arlo', skin: '#f6d2b8', hair: '#d9b46a', hairStyle: 'messy', eyes: '#3d7fd0', height: 1, build: 'kid',
+    id: arloSheetId(save), skin: '#f6d2b8', hair: '#d9b46a', hairStyle: 'messy', eyes: '#3d7fd0', height: 1, build: 'kid',
     shirt: { style: save.look.shirt.style, color: save.look.shirt.color, accent: save.look.shirt.accent || '#ffffff' },
     pants: { style: save.look.pants.style, color: save.look.pants.color },
     hat: save.look.hat, beltColor,
