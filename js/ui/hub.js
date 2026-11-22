@@ -17,6 +17,7 @@ import { modal, infoModal, confirmModal, iconCanvas, gearIcon, rewardChips, canv
 import { sfx, playMusic, applyAudioSettings } from '../audio.js';
 import { playPinball } from './pinball.js';
 import { runTour } from './tutorial.js';
+import { HOME_SPOTS, PET_SPOTS } from '../data/home.js';
 import { BAL } from '../data/balance.js';
 
 let tab = 'home';
@@ -141,17 +142,6 @@ function sideBtn(ic, label, fn, dot) {
 const FAMILY_SHEETS = ['arlo', 'mom', 'papa', 'alyzee', 'eveah', 'emery', 'nana', 'papi', 'twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'];
 // Nana & Papi's house is one long room you can swipe across.
 // Spots are in coordinates of the panorama picture (ix = 0..1 across, iy = 0..1 down = where feet touch the floor).
-const HOME_SPOTS = {
-  papi: { ix: 0.135, iy: 0.87, anim: 'action' },   // cooking at the stove
-  mom: { ix: 0.27, iy: 0.88 },                     // by the dining table
-  nana: { ix: 0.405, iy: 0.86 },                   // by the window
-  arlo: { ix: 0.52, iy: 0.95 },                    // middle of the room, on the rug
-  papa: { ix: 0.655, iy: 0.84, anim: 'action' },   // at the piano
-  alyzee: { ix: 0.765, iy: 0.85 },                 // at the vanity mirror
-  eveah: { ix: 0.875, iy: 0.87, anim: 'action' },  // at the microphone, singing
-  emery: { ix: 0.95, iy: 0.89 },                   // by the front door
-};
-const PET_SPOTS = [[0.555, 0.95], [0.79, 0.95], [0.36, 0.96], [0.62, 0.98], [0.2, 0.96], [0.71, 0.97], [0.46, 0.98], [0.87, 0.97], [0.3, 0.99], [0.06, 0.97], [0.98, 0.98]];
 let homeCam = null;   // camera x offset (persists while the hub is open)
 function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH, cam }) {
   const wide = bg.naturalWidth / bg.naturalHeight > 1.5;

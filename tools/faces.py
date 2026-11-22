@@ -3,6 +3,10 @@ import sys, os, numpy as np
 from PIL import Image
 def face(key, out, frac=0.78, pad=0.1):
     im = Image.open(f'assets/chars/{key}/idle_0.webp').convert('RGBA')
+    # paint any magenta marker belt white for the portrait
+    arr = np.array(im); hsv = np.array(im.convert('RGB').convert('HSV')).astype(float)
+    mk = (arr[..., 3] > 100) & (hsv[..., 0] * 360 / 255 >= 296) & (hsv[..., 0] * 360 / 255 <= 332) & (hsv[..., 1] > 127)
+    v = hsv[..., 2][mk]; arr[mk, 0] = arr[mk, 1] = arr[mk, 2] = np.clip(v * 0.97, 0, 255).astype(np.uint8); im = Image.fromarray(arr)
     a = np.array(im)[..., 3] > 40; H, W = a.shape
     top = np.argmax(a.any(1))
     head = a[top: top + int(H * 0.45)]

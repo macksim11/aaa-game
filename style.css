@@ -379,3 +379,7 @@ img.gi { display: inline-block; vertical-align: middle; object-fit: contain; poi
 .menu-list .btn { font-size: 17px; white-space: nowrap; }
 .menu-list .btn.green { justify-content: center; }
 .menu-list .danger-link { background: none; border: none; color: #b33a4e; font-weight: 700; font-size: 13px; text-decoration: underline; padding: 6px; margin-top: 2px; }
+
+/* doctor fixes: bigger tap targets */
+.speed-btn { min-width: 48px; min-height: 36px; font-size: 17px !important; padding: 4px 12px !important; }
+.btn.tiny { min-height: 34px; }

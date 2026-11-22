@@ -6,3 +6,4 @@ sprites/raw/
 *.psd
 tools/sim/node_modules/
 tools/sim/out_*.json
+tools/doctor/.sim.mjs

@@ -14,8 +14,12 @@ def run(D):
           mx, mn = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
           strict = 'arlo_' in D                                   # armor variants: belt is the brightest pure white
           white = (a > 200) & (mn > (222 if strict else 150)) & (mx - mn < (28 if strict else 45))
-          magenta = (a > 150) & (r > 170) & (b > 140) & (g < 110)   # marker belt (karate gi sheet)
-          if magenta.sum() > 150:
+          hsv = np.array(Image.open(f"{D}/{fr['f']}").convert('RGB').convert('HSV')).astype(float)
+          hue, sat = hsv[..., 0] * 360 / 255, hsv[..., 1] / 255
+          # marker belt = pure magenta (hue ~300-330, strong colour). Pig pink (~0) and the purple car (~288, weaker) don't match.
+          magenta = (a > 150) & (hue >= 296) & (hue <= 332) & (sat > 0.5) & (r > 120)
+          magenta = ndimage.binary_opening(magenta, iterations=1) | (magenta & ndimage.binary_dilation(ndimage.binary_opening(magenta, iterations=1), iterations=2))
+          if magenta.sum() > 40:
               m = ndimage.binary_dilation(magenta, iterations=1) & (a > 120)
               shade = np.clip((0.5 * r + 0.5 * b) / 255 * 255, 0, 255)
               mask = np.zeros((H0 := magenta.shape[0], magenta.shape[1], 4), np.uint8)
@@ -42,10 +46,13 @@ def run(D):
           seed = int(np.argmax(np.where(ok, sizes, 0))) + 1
           if sizes[seed - 1] < 60: continue
           m = lab == seed
+          # knot and tails: any solid white piece next to the belt, not huge (not the white chicken / golf cart), near belt height
+          sy = cy[seed - 1]
+          grow_ok = (solid_n > 1) & ~eyeish & (sizes < sizes[seed - 1] * 3 + 200) & (np.abs(cy - sy) < H * 0.2)
           # grow: add nearby solid white pieces (knot + tails) that touch the belt after a small gap
           for _ in range(4):
               near = ndimage.binary_dilation(m, iterations=9)
-              add = [i for i in idx if ok[i - 1] and not m[lab == i].any() and (near & (lab == i)).any()]
+              add = [i for i in idx if grow_ok[i - 1] and not m[lab == i].any() and (near & (lab == i)).any()]
               if not add: break
               for i in add: m |= lab == i
           m = ndimage.binary_dilation(m, iterations=1) & (mn > 110) & (a > 150) & ~near_blue

@@ -42,15 +42,16 @@ function beltTint(img, color) {
 }
 // ---- weapons drawn in Arlo's hand ----
 // grip = where the handle is in the weapon picture (0..1), nat = direction the weapon points in its picture (deg, 0 = up)
-const WEAPON_GRIP = { hockey_stick: { grip: [0.82, 0.14], nat: 225 }, bo_staff: { grip: [0.5, 0.5], nat: 45, size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, size: 0.8 }, diamond_pick: { grip: [0.12, 0.9], nat: 45 } };
+const WEAPON_GRIP = { hockey_stick: { grip: [0.82, 0.14], nat: 225, idleAngle: 165 }, bo_staff: { grip: [0.5, 0.5], nat: 45, size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, size: 0.8 }, diamond_pick: { grip: [0.12, 0.9], nat: 45 } };
 const WEAPON_IMG = {};
 function weaponImg(id) {
   if (WEAPON_IMG[id] !== undefined) return WEAPON_IMG[id];
   WEAPON_IMG[id] = null; const im = new Image(); im.onload = () => { WEAPON_IMG[id] = im; }; im.src = `assets/icons/g_${id}.webp`; return null;
 }
-function drawWeapon(ctx, id, hx, hy, angleDeg, size) {
+function drawWeapon(ctx, id, hx, hy, angleDeg, size, frameKey = '') {
   const im = weaponImg(id); if (!im) return;
   const g = WEAPON_GRIP[id] || { grip: [0.18, 0.85], nat: 45 };
+  if (g.idleAngle != null && frameKey.startsWith('idle')) angleDeg = g.idleAngle;   // e.g. hockey stick rests blade-down
   const S = size * (g.size || 1);
   ctx.save(); ctx.translate(hx, hy); ctx.rotate((angleDeg - g.nat) * Math.PI / 180);
   ctx.drawImage(im, -g.grip[0] * S, -g.grip[1] * S, S, S);
@@ -117,10 +118,11 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   // soft shadow
   if (!opts.noShadow) { ctx.save(); ctx.globalAlpha *= 0.2; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(0, 0, Math.min(w, h * 0.9) * 0.4, h * 0.06, 0, 0, 7); ctx.fill(); ctx.restore(); }
   if (opts.filter) ctx.filter = opts.filter;
+  // weapon goes BEHIND the sprite so his fist wraps around the handle
+  if (opts.weapon && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.44, img.key); }
   ctx.drawImage(img, -w / 2, -ih, w, ih);
   const beltCol = BELT_COLOR || (img.beltAlways ? '#f4f4f4' : null);   // marker belts are always repainted (even white)
   if (img.belt && beltCol && opts.belt !== false && (key.startsWith('chars/arlo') || key.startsWith('rides/'))) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
-  if (opts.weapon && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.5); }
   if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(-w / 2, -ih, w, ih); }
   ctx.restore();
   return true;

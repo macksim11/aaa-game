@@ -1,32 +1,35 @@
 {
- "scale": 0.5660377358490566,
  "refHeight": 300,
  "anims": {
   "idle": [
    {
     "f": "idle_0.webp",
-    "w": 194,
+    "w": 195,
     "h": 285,
+    "beltAlways": 1,
     "belt": "belt_idle_0.webp"
    },
    {
     "f": "idle_1.webp",
     "w": 194,
     "h": 285,
+    "beltAlways": 1,
     "belt": "belt_idle_1.webp"
    },
    {
     "f": "idle_2.webp",
     "w": 194,
     "h": 285,
+    "beltAlways": 1,
     "belt": "belt_idle_2.webp"
    }
   ],
   "victory": [
    {
     "f": "victory_0.webp",
-    "w": 228,
+    "w": 229,
     "h": 294,
+    "beltAlways": 1,
     "belt": "belt_victory_0.webp"
    }
   ],
@@ -35,24 +38,28 @@
     "f": "run_0.webp",
     "w": 188,
     "h": 280,
+    "beltAlways": 1,
     "belt": "belt_run_0.webp"
    },
    {
     "f": "run_1.webp",
-    "w": 234,
+    "w": 235,
     "h": 279,
+    "beltAlways": 1,
     "belt": "belt_run_1.webp"
    },
    {
     "f": "run_2.webp",
     "w": 205,
     "h": 280,
+    "beltAlways": 1,
     "belt": "belt_run_2.webp"
    },
    {
     "f": "run_3.webp",
     "w": 200,
     "h": 279,
+    "beltAlways": 1,
     "belt": "belt_run_3.webp"
    }
   ],
@@ -60,7 +67,8 @@
    {
     "f": "punch_0.webp",
     "w": 209,
-    "h": 280,
+    "h": 281,
+    "beltAlways": 1,
     "belt": "belt_punch_0.webp"
    }
   ],
@@ -69,6 +77,7 @@
     "f": "kick_0.webp",
     "w": 254,
     "h": 269,
+    "beltAlways": 1,
     "belt": "belt_kick_0.webp"
    }
   ],
@@ -77,6 +86,7 @@
     "f": "hurt_0.webp",
     "w": 215,
     "h": 273,
+    "beltAlways": 1,
     "belt": "belt_hurt_0.webp"
    }
   ],
@@ -84,8 +94,8 @@
    {
     "f": "down_0.webp",
     "w": 289,
-    "h": 178,
-    "belt": "belt_down_0.webp"
+    "h": 179,
+    "beltAlways": 1
    }
   ]
  }
