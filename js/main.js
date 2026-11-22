@@ -1,5 +1,6 @@
 import { S, save } from './state.js';
-import { el, watchIcons } from './util.js';
+import { el, watchIcons, preloadIcons } from './util.js';
+preloadIcons();
 // swap leftover emoji in the UI for the game's icon art
 watchIcons(document.getElementById('app') || document.body);
 import { initAudio } from './audio.js';

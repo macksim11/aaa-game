@@ -88,3 +88,12 @@ export function watchIcons(root) {
   new MutationObserver(() => { if (iconizeQueued) return; iconizeQueued = true; queueMicrotask(() => { iconizeQueued = false; iconizeText(root); }); })
     .observe(root, { childList: true, subtree: true, characterData: true });
 }
+
+// Load every icon once at start and keep them in memory, so menus show icons instantly.
+const ICON_CACHE = [];
+export async function preloadIcons() {
+  try {
+    const names = await (await fetch('assets/icons/list.json')).json();
+    for (const n of names) { const im = new Image(); im.decoding = 'async'; im.src = `assets/icons/${n}.webp`; ICON_CACHE.push(im); im.decode?.().catch(() => {}); }
+  } catch {}
+}
