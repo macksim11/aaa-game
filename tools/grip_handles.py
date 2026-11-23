@@ -35,7 +35,7 @@ for D in [x for x in sys.argv[1:] if not x.startswith('--')]:
                 hands[f'{anim}_{k}'] = [round(gx / a.shape[1], 3), round(gy / a.shape[0], 3), round(ang), 1]
                 _, (iy, ix) = ndimage.distance_transform_edt(lime, return_indices=True)
                 ring = ndimage.binary_dilation(lime, iterations=5) & ~lime
-                lime = lime | (ring & (((hue > 60) & (hue < 170) & (sat > 0.12)) | (val < 0.42)) & ~((hue > 10) & (hue < 40) & (sat > 0.15) & (val > 0.6)))
+                lime = lime | (ring & (((hue > 45) & (hue < 170) & (sat > 0.12)) | (val < 0.5) | ((hue > 25) & (hue < 90) & (sat > 0.2) & (val < 0.75))) & ~((hue > 10) & (hue < 40) & (sat > 0.15) & (sat < 0.6) & (val > 0.72)))
                 _, (iy, ix) = ndimage.distance_transform_edt(lime, return_indices=True)
                 a[lime] = a[iy[lime], ix[lime]]; Image.fromarray(a).save(p, 'WEBP', quality=92)
                 continue
@@ -61,10 +61,11 @@ for D in [x for x in sys.argv[1:] if not x.startswith('--')]:
             hands[f'{anim}_{k}'] = [round(cx / a.shape[1], 3), round(cy / a.shape[0], 3), round(ang), behind]
             # the handle's dark outline + anti-aliasing: a ring around every marker blob that is dark or greenish
             ring = ndimage.binary_dilation(lime, iterations=5) & ~lime
-            greenish = (hue > 60) & (hue < 170) & (sat > 0.12)
-            dark = val < 0.42
-            skinny = (hue > 10) & (hue < 40) & (sat > 0.15) & (val > 0.6)
-            lime = lime | (ring & (greenish | dark) & ~skinny)
+            greenish = (hue > 45) & (hue < 170) & (sat > 0.12)
+            dark = val < 0.5
+            olive = (hue > 25) & (hue < 90) & (sat > 0.2) & (val < 0.75)        # brown/olive blend of the marker's outline
+            skinny = (hue > 10) & (hue < 40) & (sat > 0.15) & (sat < 0.6) & (val > 0.72)
+            lime = lime | (ring & (greenish | dark | olive) & ~skinny)
             # erase every marker pixel: copy the nearest non-marker pixel (keeps the fist, clears what stuck out)
             _, (iy, ix) = ndimage.distance_transform_edt(lime, return_indices=True)
             a[lime] = a[iy[lime], ix[lime]]

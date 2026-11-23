@@ -7,36 +7,36 @@
     "w": 196,
     "h": 285,
     "fist": "fist_idle_0.webp",
+    "belt": "belt_idle_0.webp",
     "beltAlways": 1,
     "beltC": [
      0.59,
-     0.798
-    ],
-    "belt": "belt_idle_0.webp"
+     0.797
+    ]
    },
    {
     "f": "idle_1.webp",
     "w": 195,
     "h": 285,
     "fist": "fist_idle_1.webp",
+    "belt": "belt_idle_1.webp",
     "beltAlways": 1,
     "beltC": [
      0.586,
      0.797
-    ],
-    "belt": "belt_idle_1.webp"
+    ]
    },
    {
     "f": "idle_2.webp",
     "w": 195,
     "h": 285,
     "fist": "fist_idle_2.webp",
+    "belt": "belt_idle_2.webp",
     "beltAlways": 1,
     "beltC": [
      0.604,
      0.796
-    ],
-    "belt": "belt_idle_2.webp"
+    ]
    }
   ],
   "victory": [
@@ -45,12 +45,12 @@
     "w": 252,
     "h": 294,
     "fist": "fist_victory_0.webp",
+    "belt": "belt_victory_0.webp",
     "beltAlways": 1,
     "beltC": [
      0.498,
      0.788
-    ],
-    "belt": "belt_victory_0.webp"
+    ]
    }
   ],
   "run": [
@@ -59,48 +59,48 @@
     "w": 189,
     "h": 280,
     "fist": "fist_run_0.webp",
+    "belt": "belt_run_0.webp",
     "beltAlways": 1,
     "beltC": [
-     0.398,
-     0.792
-    ],
-    "belt": "belt_run_0.webp"
+     0.391,
+     0.788
+    ]
    },
    {
     "f": "run_1.webp",
     "w": 236,
     "h": 278,
     "fist": "fist_run_1.webp",
+    "belt": "belt_run_1.webp",
     "beltAlways": 1,
     "beltC": [
      0.39,
      0.744
-    ],
-    "belt": "belt_run_1.webp"
+    ]
    },
    {
     "f": "run_2.webp",
     "w": 213,
     "h": 280,
     "fist": "fist_run_2.webp",
+    "belt": "belt_run_2.webp",
     "beltAlways": 1,
     "beltC": [
-     0.418,
-     0.746
-    ],
-    "belt": "belt_run_2.webp"
+     0.403,
+     0.744
+    ]
    },
    {
     "f": "run_3.webp",
     "w": 201,
     "h": 278,
     "fist": "fist_run_3.webp",
+    "belt": "belt_run_3.webp",
     "beltAlways": 1,
     "beltC": [
      0.361,
      0.743
-    ],
-    "belt": "belt_run_3.webp"
+    ]
    }
   ],
   "punch": [
@@ -109,12 +109,12 @@
     "w": 212,
     "h": 281,
     "fist": "fist_punch_0.webp",
+    "belt": "belt_punch_0.webp",
     "beltAlways": 1,
     "beltC": [
-     0.462,
+     0.461,
      0.771
-    ],
-    "belt": "belt_punch_0.webp"
+    ]
    }
   ],
   "kick": [
@@ -123,12 +123,12 @@
     "w": 256,
     "h": 269,
     "fist": "fist_kick_0.webp",
+    "belt": "belt_kick_0.webp",
     "beltAlways": 1,
     "beltC": [
-     0.564,
-     0.758
-    ],
-    "belt": "belt_kick_0.webp"
+     0.556,
+     0.759
+    ]
    }
   ],
   "hurt": [
@@ -137,12 +137,12 @@
     "w": 216,
     "h": 274,
     "fist": "fist_hurt_0.webp",
+    "belt": "belt_hurt_0.webp",
     "beltAlways": 1,
     "beltC": [
      0.37,
      0.747
-    ],
-    "belt": "belt_hurt_0.webp"
+    ]
    }
   ],
   "down": [

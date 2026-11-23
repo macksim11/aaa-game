@@ -123,9 +123,9 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   // soft shadow
   if (!opts.noShadow) { ctx.save(); ctx.globalAlpha *= 0.2; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(0, 0, Math.min(w, h * 0.9) * 0.4, h * 0.06, 0, 0, 7); ctx.fill(); ctx.restore(); }
   if (opts.filter) ctx.filter = opts.filter;
-  let frontWeapon = null;
+  let frontWeapon = null;   // golf cart: the weapon rests against the seat in front of the cart's back
   // weapon goes BEHIND the sprite so his fist wraps around the handle
-  if (opts.weapon && sheet.hands?.[img.key] && (!img.fist || sheet.hands[img.key][3])) {   /* behind the body (no fist layer, or the blade would cross his face, or strapped on his back on a ride) */ const [hx, hy, ang] = sheet.hands[img.key]; const ride = key.startsWith('rides/'); drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, ride ? ih * 0.38 : h * 0.44, ride ? 'carry' : img.key); }
+  if (opts.weapon && sheet.hands?.[img.key] && (!img.fist || sheet.hands[img.key][3])) {   /* behind the body (no fist layer, or the blade would cross his face, or strapped on his back on a ride) */ const [hx, hy, ang] = sheet.hands[img.key]; const ride = key.startsWith('rides/'); if (key === 'rides/golfcart') { frontWeapon = () => drawWeapon(ctx, opts.weapon, -w / 2 + (hx - 0.1) * w, -ih + (hy + 0.12) * ih, 345, ih * 0.3, 'carry'); }   /* leaning on the seat behind him */ else drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, ride ? ih * 0.38 : h * 0.44, ride ? 'carry' : img.key); }
   // on rides his hands are on the handlebars / reins, so the weapon is strapped across his back (placed from the belt position)
   else if (opts.weapon && img.beltC && key.startsWith('rides/')) {
     const o = RIDE_BACK[key.slice(6)] || RIDE_BACK.default; const [bx, by] = img.beltC;
