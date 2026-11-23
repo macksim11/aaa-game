@@ -154,7 +154,11 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
       const D = [180, 40, -40, 75, -75, 110, -110].map(d => (ang + d + 360) % 360);
       const clear = D.find(a => !bad(a));
       if (clear != null) { ang2 = clear; behind = false; }   // nearest clear direction: in front, fully visible
-      else { const offHead = [ang, ...D].find(a => !weaponCrosses(opts.weapon, gx, gy, a, size, head)); if (offHead != null) { ang2 = offHead; behind = false; } }   // no clear way (a fist in front of his chest, as in the kick): held across his body like the artist drew it, never over his head
+      else {   // no fully clear way (a fist in front of his chest, as in the kick): off his head, over the least of his body, tucked behind it
+        const share = a => { for (let k = 0.05; k <= 1; k += 0.05) if (!weaponCrosses(opts.weapon, gx, gy, a, size, torso, k)) return k; return 1; };
+        const C2 = []; for (let a = 0; a < 360; a += 15) if (!weaponCrosses(opts.weapon, gx, gy, a, size, head)) C2.push(a);
+        if (C2.length) { ang2 = C2.reduce((b, a) => share(a) < share(b) ? a : b); behind = true; }   // behind him: never a sticker across his body (Emery 31.webp); its ends show past him
+      }
     }
     if (behind) drawWeapon(ctx, opts.weapon, gx, gy, ang2, size, 'held');
     ctx.drawImage(img.held, left, top, Wm, Hm);
