@@ -1,3 +1,5 @@
+import { S } from './state.js';
+import { buzz } from './util.js';
 import { sleep, GAME } from './util.js';
 import { drawBackground, groundY } from './art/backgrounds.js';
 import { drawPerson } from './art/people.js';
@@ -67,7 +69,7 @@ export class Scene {
     for (const a of sorted) this.drawActor(a);
     for (const f of this.fx) f.draw(ctx, f);
     ctx.restore();
-    if (this.flashT > 0) { ctx.save(); ctx.globalAlpha = this.flashT * 2; ctx.fillStyle = this.flashColor; ctx.fillRect(0, 0, w, h); ctx.restore(); }
+    if (this.flashT > 0) { ctx.save(); ctx.globalAlpha = this.flashT * (S.settings.calm ? 0.4 : 2); ctx.fillStyle = this.flashColor; ctx.fillRect(0, 0, w, h); ctx.restore(); }
     this.overlayDraw?.(ctx, w, h, this.t);
   }
 
@@ -155,7 +157,7 @@ export class Scene {
   center(a) { return { x: a.x + (a.dx || 0), y: (a.y ?? this.gy) - this.heightOf(a) * 0.55 }; }
 
   // ---------- effects ----------
-  shake(s = 0.4) { this.shakeT = Math.max(this.shakeT, s); }
+  shake(s = 0.4) { if (S.settings.calm) s *= 0.15; this.shakeT = Math.max(this.shakeT, s); if (s >= 0.4) buzz(25); }
   flash(c = '#fff', s = 0.25) { this.flashColor = c; this.flashT = s; }
   floatText(x, y, str, color = '#fff', size = 18, big = false) {
     const sz = size * (0.8 + this.u * 0.25);

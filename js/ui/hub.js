@@ -84,7 +84,8 @@ function homeTab(body, { onStart, onReplayIntro }) {
   const nanaReady = S.daily.nana !== today(), papiReady = S.daily.papi !== today() && !S.papiBuff, pinReady = S.daily.pinball !== today();
   const side = el('div', { class: 'hub-side' },
     sideBtn('rides', 'Rides', () => { tab = 'pets'; petsSub = 'rides'; refresh(); }),
-    sideBtn('menu', 'Menu', () => menuModal(onReplayIntro)));
+    sideBtn('menu', 'Menu', () => menuModal(onReplayIntro)),
+    sideBtn('calendar', 'Daily', () => dailyCalendar(), S.login.last !== today()));
   const side2 = el('div', { class: 'hub-side right' },
     sideBtn('gift', 'Nana', () => nanaGift(), nanaReady),
     sideBtn('papi', 'Papi', () => papiMeal(), papiReady),
@@ -303,6 +304,28 @@ function drawHome(canvas, hits) {
   requestAnimationFrame(frame);
 }
 
+// =================== DAILY CALENDAR ===================
+// 7 days of small rewards. Missing a day never resets it (no pressure); day 7 is a bigger treat, then it starts over.
+function loginReward(day) {
+  const lvl = S.progress.unlocked;
+  return [{ coins: 40 * lvl }, { food: 5 + lvl }, { coins: 60 * lvl }, { gems: 3 + lvl }, { coins: 80 * lvl }, { food: 8 + lvl }, { coins: 120 * lvl, gems: 8 + 2 * lvl }][day % 7];
+}
+function dailyCalendar() {
+  const claimed = S.login.last === today();
+  const next = claimed ? S.login.day - 1 : S.login.day;          // index of today's box
+  const grid = el('div', { class: 'cal-grid' }, ...Array.from({ length: 7 }, (_, i) => {
+    const r = loginReward(i); const done = i < (S.login.day % 7 || (claimed && S.login.day % 7 === 0 ? 7 : 0)); const isToday = i === next % 7;
+    return el('div', { class: 'cal-day' + (done ? ' done' : '') + (isToday && !claimed ? ' today' : '') + (i === 6 ? ' big' : '') },
+      el('div', { class: 'cal-n' }, 'Day ' + (i + 1)), rewardChips(r), done ? el('div', { class: 'cal-check' }, '✅') : null);
+  }));
+  const btn = el('button', { class: 'btn ' + (claimed ? 'gray' : 'gold'), disabled: claimed, onclick: () => {
+    const r = loginReward(S.login.day % 7);
+    S.coins += r.coins || 0; S.gems += r.gems || 0; S.petFood += r.food || 0; S.login.day++; S.login.last = today(); save(); sfx('chest'); m.close(); toast('Daily reward collected!'); refresh();
+  } }, claimed ? 'Come back tomorrow!' : 'Collect');
+  const p = el('div', { class: 'panel', style: { textAlign: 'center' } }, el('h2', {}, 'Daily Rewards'), el('div', { class: 'note' }, 'A little gift every day you play. Missing a day is OK!'), grid, btn);
+  const m = modal(p, { dismissable: true });
+}
+
 function nanaGift() {
   if (S.daily.nana === today()) return infoModal('Nana', '<i>"I already gave you your gift today, sweetheart. Come back tomorrow!"</i>', 'OK');
   const gifts = BAL.nanaGift(S.progress.unlocked);
@@ -370,7 +393,7 @@ function lookModal() {
           S.coins -= cost; S.look.unlocked.push(key); sfx('coin');
         }
         S.look[part].style = id; save(); render();
-      } }, name, el('div', { style: { fontSize: '10px' } }, owned ? (on ? '✓ wearing' : '') : `🪙 ${cost}`)));
+      } }, name, el('div', { style: { fontSize: '11px' } }, owned ? (on ? '✓ wearing' : '') : `🪙 ${cost}`)));
     }
     body.append(row);
     if (!(part === 'hat' && ['none', 'helmet', 'crown', 'bacon'].includes(S.look.hat.style))) {
@@ -387,7 +410,10 @@ function menuModal(onReplayIntro) {
   const p = el('div', { class: 'panel' }, el('h2', {}, 'Menu'), el('div', { class: 'menu-list' },
     el('button', { class: 'btn blue', onclick: () => { S.settings.music = !S.settings.music; save(); applyAudioSettings(); m.close(); menuModal(onReplayIntro); } }, `🎵 Music: ${S.settings.music ? 'ON' : 'OFF'}`),
     el('button', { class: 'btn blue', onclick: () => { S.settings.sfx = !S.settings.sfx; save(); applyAudioSettings(); m.close(); menuModal(onReplayIntro); } }, `🔊 Sounds: ${S.settings.sfx ? 'ON' : 'OFF'}`),
+    el('button', { class: 'btn blue', onclick: () => { S.settings.calm = !S.settings.calm; save(); m.close(); menuModal(onReplayIntro); } }, `🌙 Calm mode: ${S.settings.calm ? 'ON' : 'OFF'}`),
+    'vibrate' in navigator ? el('button', { class: 'btn blue', onclick: () => { S.settings.vibrate = !S.settings.vibrate; save(); if (S.settings.vibrate) navigator.vibrate?.(60); m.close(); menuModal(onReplayIntro); } }, `📳 Vibration: ${S.settings.vibrate ? 'ON' : 'OFF'}`) : null,
     el('button', { class: 'btn purple', onclick: () => { m.close(); onReplayIntro(); } }, '🎬 Watch the story again'),
+    el('button', { class: 'btn purple', onclick: () => { m.close(); S.tut.stage = 'tour'; S.tut.step = 0; save(); tab = 'home'; refresh(); } }, '🔁 Show me around again'),
     el('button', { class: 'btn gold', onclick: () => { m.close(); transferModal(); } }, '📲 Move save to another device'),
     el('button', { class: 'btn gray', onclick: () => { m.close(); statsModal(); } }, '📊 My stats'),
     el('button', { class: 'btn green', onclick: () => m.close() }, 'Close'),
@@ -420,7 +446,7 @@ function gearTab(body) {
   const slotEl = slot => {
     const it = S.gear.items.find(i => i.uid === S.gear.slots[slot]);
     const b = el('button', { class: 'slot' + (it ? ' filled bg-' + RARITIES[it.rarity] : ''), onclick: () => it ? itemModal(it) : toast(`No ${SLOT_NAMES[slot]} yet. Find some in chests!`) });
-    if (it) { b.append(gearIcon(it.id, GEAR[it.id].icon, 64)); b.append(el('span', { class: 'lv', style: { position: 'absolute', left: '2px', top: '1px', fontSize: '10px', fontWeight: 700, background: 'rgba(0,0,0,.55)', color: '#fff', borderRadius: '5px', padding: '0 4px' } }, 'Lv' + it.level)); }
+    if (it) { b.append(gearIcon(it.id, GEAR[it.id].icon, 64)); b.append(el('span', { class: 'lv', style: { position: 'absolute', left: '2px', top: '1px', fontSize: '11px', fontWeight: 700, background: 'rgba(0,0,0,.55)', color: '#fff', borderRadius: '5px', padding: '0 4px' } }, 'Lv' + it.level)); }
     else b.append(icon('slot_' + slot, 40, SLOT_ICONS[slot]), el('span', { class: 'lbl' }, SLOT_NAMES[slot]));
     return b;
   };
@@ -495,7 +521,7 @@ function petsTab(body) {
   const row = el('div', { style: { display: 'flex', gap: '8px', justifyContent: 'center' } });
   for (let i = 0; i < 3; i++) {
     const id = S.pets.equipped[i];
-    if (i >= slots) { row.append(el('div', { class: 'tile locked', style: { width: '84px', fontSize: '12px', color: '#fff', flexDirection: 'column', filter: 'none', background: '#3a2a55' } }, '🔒', el('span', { style: { fontSize: '10px', textAlign: 'center' } }, BELTS[PET_SLOT_BELTS[i]].name))); continue; }
+    if (i >= slots) { row.append(el('div', { class: 'tile locked', style: { width: '84px', fontSize: '12px', color: '#fff', flexDirection: 'column', filter: 'none', background: '#3a2a55' } }, '🔒', el('span', { style: { fontSize: '11px', textAlign: 'center' } }, BELTS[PET_SLOT_BELTS[i]].name))); continue; }
     if (!id) { row.append(el('div', { class: 'tile', style: { width: '84px', background: '#e9d8b4', fontSize: '12px', fontWeight: 700 } }, 'Empty')); continue; }
     row.append(petTile(id, 84));
   }

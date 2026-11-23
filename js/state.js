@@ -29,7 +29,8 @@ export function defaultSave() {
     daily: { nana: '', papi: '', pinball: '' },
     papiBuff: null,
     stats: { runs: 0, deaths: 0, kills: 0, bossKills: 0 },
-    settings: { music: true, sfx: true, speed: 1 },
+    settings: { music: true, sfx: true, speed: 1, calm: (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches), vibrate: true },
+    login: { day: 0, last: '' },
     seenNews: [],
     // first-time flow: 'story' -> 'firstRun' (straight into Chapter 1) -> 'tour' (hub walkthrough) -> 'done'
     tut: { stage: 'story', open: ['home'], step: 0 },
@@ -59,6 +60,7 @@ function migrate(s) {
 }
 
 export let S = load();
+globalThis.__AAA_S = S;
 
 export function load() {
   try {
@@ -75,7 +77,7 @@ export function load() {
 export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { console.warn('save failed', e); }
 }
-export function resetSave() { S = defaultSave(); save(); }
+export function resetSave() { S = defaultSave(); globalThis.__AAA_S = S; save(); }
 export function wipeAndReload() { try { localStorage.removeItem(KEY); } catch {} location.reload(); }
 
 export function exportCode() {
@@ -88,7 +90,7 @@ export function importCode(code) {
   const json = decodeURIComponent(escape(atob(code.slice(5))));
   const obj = JSON.parse(json);
   if (!obj.tut && obj.introSeen) obj.tut = { stage: 'done', open: ['home', 'shop', 'gear', 'pets', 'belts'], step: 0 };
-  S = migrate(mergeDefaults(defaultSave(), obj));
+  S = migrate(mergeDefaults(defaultSave(), obj)); globalThis.__AAA_S = S;
   save();
 }
 

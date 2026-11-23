@@ -1,4 +1,4 @@
-import { el, rich, pick, weighted, chance, randi, sleep, shuffle, fmt, toast, icon, setPaused } from './util.js';
+import { el, rich, pick, weighted, chance, randi, sleep, shuffle, fmt, toast, icon, setPaused, buzz } from './util.js';
 import { S, save } from './state.js';
 import { heroStats, beltInfo } from './stats.js';
 import { Scene } from './scene.js';
@@ -19,7 +19,7 @@ import { playPinball } from './ui/pinball.js';
 import { playComic, ENDING } from './ui/comic.js';
 import { drawPet } from './art/animals.js';
 import { drawPerson } from './art/people.js';
-import { preloadSheets } from './art/sheets.js';
+import { preloadSheets, drawAnim } from './art/sheets.js';
 
 const SHEET_PETS = ['twyla', 'lenny', 'goose', 'marah', 'tobi', 'zuko', 'wolf', 'axolotl', 'eevee', 'pikachu', 'charizard'];
 const EV_ICON = { poutine: 'poutine', bagel: 'bagel', depanneur: 'slushie', lego: 'lego', kragle_puddle: 'kragle', board_game: 'dice', pinball: 'pinball', penalty: 'goal', goal: 'goal', fountain: 'fountain', potion: 'potion', sugar_shack: 'taffy', golden_burger: 'big_lunch', diamond: 'gem', pigeon_coins: 'coin', food_bag: 'food', mcdonalds: 'big_lunch', obby: 'trophy', gi_found: 'belts', kata: 'power_punch', pushups: 'power_punch', chess: 'fast_learner', steve: 'heal_star', crossing_guard: 'heal_star', habs: 'g_hockey_stick', sprinkler: 'g_water_shoes', rain: 'second_wind', wind: 'second_wind', lego_salesman: 'lego', raccoon: 'skill_dmg', gym: 'combo', cat_cafe: 'pets' };
@@ -311,6 +311,7 @@ export function startRun(chId, onExit) {
         const d = ENEMIES[ch.boss];
         await sleep(400);
         addCard(pick(d.intro), 'boss', false);
+        await vsCard(d.name, ch.boss);
         scene.bigText('BOSS!', '#ff5a6a', 1.2); sfx('boom'); scene.shake(0.5);
         ok = await doBattle([makeEnemy(ch.boss, 0)], 'boss');
         if (ok) return chapterWon();
@@ -428,6 +429,20 @@ export function startRun(chId, onExit) {
     if (joined) { addPetActor(id); updateUI(); }
   }
 
+  // boss intro: Arlo VS the boss (tap or wait to continue)
+  function vsCard(name, key) {
+    return new Promise(res => {
+      const pic = canvasBox(110, 110, (ctx, w, h, t) => drawAnim(ctx, 'bosses/' + key, 'idle', w / 2, h - 4, h * 0.95, { t, noShadow: true }), true);
+      const card = el('div', { class: 'vs-card' },
+        el('div', { class: 'side l' }, el('img', { class: 'face', src: 'assets/ui/face_arlo.webp', alt: '' }), S.name),
+        el('div', { class: 'vs' }, 'VS'),
+        el('div', { class: 'side r' }, pic, name));
+      let done = false; const go = () => { if (done) return; done = true; card.remove(); res(); };
+      card.addEventListener('click', go); document.getElementById('overlay').append(card); sfx('boom'); buzz(60);
+      sleep(1900).then(go);
+    });
+  }
+
   // ---------- end of run ----------
   function bankRewards(extra = {}) {
     const dayBonus = Math.round(run.day * BAL.dayBonus * coinMult);
@@ -468,7 +483,7 @@ export function startRun(chId, onExit) {
   async function chapterWon() {
     run.over = true; setActions([]);
     playMusic('story'); sfx('win');
-    scene.bigText('VICTORY!', '#ffd23a', 2);
+    scene.bigText('VICTORY!', '#ffd23a', 2); buzz([60, 40, 120]);
     hero.armUp = true;
     await sleep(1400);
     const first = !S.progress.cleared[ch.id];

@@ -3,6 +3,8 @@ export const randi = (a, b) => Math.floor(rand(a, b + 1));
 export const chance = p => Math.random() < p;
 export const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// short vibration for big moments (Android; iPhones ignore it). Respects the Vibration setting.
+export function buzz(ms = 30) { try { const S = globalThis.__AAA_S; if (S && S.settings.vibrate === false) return; navigator.vibrate?.(ms); } catch {} }
 // ---- game pause: every game timer (sleep) and the battle scene stop while paused ----
 export const GAME = { paused: false };
 export function setPaused(p) { GAME.paused = !!p; }
@@ -63,6 +65,7 @@ export function icon(name, size = 24, fallback = '') {
 // ---- Emoji → game icon art ----
 // Any of these emoji appearing in the UI text are swapped for the generated icons automatically.
 export const EMOJI_ICON = {
+  '🏁': 'flag_start', '🏳️': 'flag_white', '🏳': 'flag_white', '👣': 'footprints', '⚽': 'soccer_ball', '📅': 'calendar', '🔁': 'replay', '📳': 'vibrate', '🌙': 'magic',
   '🪙': 'coin', '💎': 'gem', '❤️': 'heart', '❤': 'heart', '⚔️': 'sword', '⚔': 'sword', '🛡️': 'shield', '🛡': 'shield', '⚡': 'bolt',
   '🦴': 'food', '🥚': 'egg', '🔒': 'lock', '✅': 'check', '🎯': 'target', '💥': 'burst', '🥋': 'fists', '🔄': 'counter_arrows',
   '👟': 'wingshoe', '🧛': 'blood', '🎵': 'music', '🔊': 'sound', '🎬': 'clapper', '📲': 'transfer', '📊': 'stats', '🐾': 'pets',

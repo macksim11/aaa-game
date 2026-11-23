@@ -15,12 +15,13 @@ export function loadSheet(key) {
     await Promise.all(Object.entries(j.anims).map(async ([name, list]) => {
       anims[name] = await Promise.all(list.map((fr, k) => new Promise(res => {
         const im = new Image(); im.key = `${name}_${k}`; im.beltAlways = !!fr.beltAlways; im.beltC = fr.beltC || null; im.onload = () => res(im); im.onerror = () => res(null); im.src = base + fr.f;
+        if (fr.fist) { const fm = new Image(); fm.onload = () => { im.fist = fm; }; fm.src = base + fr.fist; }   // fingers drawn over a held weapon
         if (fr.belt) { const bm = new Image(); bm.onload = () => { im.belt = bm; }; bm.src = base + fr.belt; }  // recolourable belt mask
       })));
       anims[name] = anims[name].filter(Boolean);
     }));
     // hand positions for holding weapons (Arlo and his armor variants)
-    const hands = key.startsWith('chars/arlo') ? await fetch(base + 'hands.json').then(r => r.ok ? r.json() : null).catch(() => null) : null;
+    const hands = (key.startsWith('chars/arlo') || key.startsWith('rides/')) ? await fetch(base + 'hands.json').then(r => r.ok ? r.json() : null).catch(() => null) : null;
     SHEETS[key] = { refHeight: j.refHeight || 300, anims, hands };
     return SHEETS[key];
   }).catch(() => null);
@@ -42,7 +43,7 @@ function beltTint(img, color) {
 }
 // ---- weapons drawn in Arlo's hand ----
 // grip = where the handle is in the weapon picture (0..1), nat = direction the weapon points in its picture (deg, 0 = up)
-const WEAPON_GRIP = { hockey_stick: { grip: [0.82, 0.14], nat: 225, idleAngle: 165, backAngle: 330 }, bo_staff: { grip: [0.5, 0.5], nat: 45, size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, size: 0.8 }, diamond_pick: { grip: [0.12, 0.9], nat: 45 } };
+const WEAPON_GRIP = { hockey_stick: { grip: [0.76, 0.2], nat: 225, backAngle: 330, size: 0.78 }, bo_staff: { grip: [0.5, 0.5], nat: 45, size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, size: 0.8 }, diamond_pick: { grip: [0.2, 0.82], nat: 45 } };
 // where the weapon sits on his back for each ride (offsets from the belt, as a fraction of the frame); in the golf cart
 // and car he sits low behind the seat, so the handle pokes up higher over his shoulder
 const RIDE_BACK = { default: { dx: -0.02, dy: -0.17, ang: 215, size: 0.36 }, golfcart: { dx: -0.12, dy: -0.1, ang: 215, size: 0.3, front: true }, car: { dx: -0.03, dy: -0.33, ang: 205, size: 0.42 } };
@@ -53,7 +54,7 @@ function weaponImg(id) {
 }
 function drawWeapon(ctx, id, hx, hy, angleDeg, size, frameKey = '') {
   const im = weaponImg(id); if (!im) return;
-  const g = WEAPON_GRIP[id] || { grip: [0.18, 0.85], nat: 45 };
+  const g = WEAPON_GRIP[id] || { grip: [0.26, 0.76], nat: 45 };   // grip = middle of the hilt (sits inside the fist)
   if (g.idleAngle != null && frameKey.startsWith('idle')) angleDeg = g.idleAngle;
   if (g.backAngle != null && frameKey === 'back') angleDeg = g.backAngle;   // e.g. hockey stick on his back: blade up over the shoulder   // e.g. hockey stick rests blade-down
   const S = size * (g.size || 1);
@@ -124,16 +125,22 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   if (opts.filter) ctx.filter = opts.filter;
   let frontWeapon = null;
   // weapon goes BEHIND the sprite so his fist wraps around the handle
-  if (opts.weapon && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.44, img.key); }
+  if (opts.weapon && sheet.hands?.[img.key] && (!img.fist || sheet.hands[img.key][3])) {   /* behind the body (no fist layer, or the blade would cross his face, or strapped on his back on a ride) */ const [hx, hy, ang] = sheet.hands[img.key]; const ride = key.startsWith('rides/'); drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, ride ? ih * 0.38 : h * 0.44, ride ? 'carry' : img.key); }
   // on rides his hands are on the handlebars / reins, so the weapon is strapped across his back (placed from the belt position)
   else if (opts.weapon && img.beltC && key.startsWith('rides/')) {
     const o = RIDE_BACK[key.slice(6)] || RIDE_BACK.default; const [bx, by] = img.beltC;
     if (!o.front) drawWeapon(ctx, opts.weapon, -w / 2 + (bx + o.dx) * w, -ih + (by + o.dy) * ih, o.ang, ih * o.size, 'back');
     else frontWeapon = () => drawWeapon(ctx, opts.weapon, -w / 2 + (bx + o.dx) * w, -ih + (by + o.dy) * ih, o.ang, ih * o.size, 'back');   // golf cart: resting in the back seat
   }
-  if (opts.onlyWeapon) { frontWeapon?.(); ctx.restore(); return true; }   // test hook used by the Doctor's grip check
+  if (opts.onlyWeapon) { frontWeapon?.(); if (opts.weapon && img.fist && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.44, img.key); } ctx.restore(); return true; }   // test hook used by the Doctor's grip check
   ctx.drawImage(img, -w / 2, -ih, w, ih);
   frontWeapon?.();
+  // held weapon: in front of the body, then the fingers on top so the fist wraps around the handle
+  if (opts.weapon && img.fist && sheet.hands?.[img.key]) {
+    const [hx, hy, ang, behind] = sheet.hands[img.key];
+    if (!behind) drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * 0.44, img.key);
+    ctx.drawImage(img.fist, -w / 2, -ih, w, ih);
+  }
   const beltCol = BELT_COLOR || (img.beltAlways ? '#f4f4f4' : null);   // marker belts are always repainted (even white)
   if (img.belt && beltCol && opts.belt !== false && (key.startsWith('chars/arlo') || key.startsWith('rides/'))) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
   if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(-w / 2, -ih, w, ih); }

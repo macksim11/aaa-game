@@ -19,8 +19,8 @@ def run(D):
           # marker belt = pure magenta (hue ~300-330, strong colour). Pig pink (~0) and the purple car (~288, weaker) don't match.
           magenta = (a > 150) & (hue >= 296) & (hue <= 332) & (sat > 0.5) & (r > 120)
           magenta = ndimage.binary_opening(magenta, iterations=1) | (magenta & ndimage.binary_dilation(ndimage.binary_opening(magenta, iterations=1), iterations=2))
-          if magenta.sum() > 40:
-              m = ndimage.binary_dilation(magenta, iterations=1) & (a > 120)
+          if magenta.sum() > 15:
+              m = ndimage.binary_dilation(magenta, iterations=2) & (a > 120)
               shade = np.clip((0.5 * r + 0.5 * b) / 255 * 255, 0, 255)
               mask = np.zeros((H0 := magenta.shape[0], magenta.shape[1], 4), np.uint8)
               mask[..., 0] = mask[..., 1] = mask[..., 2] = shade.astype(np.uint8); mask[..., 3] = np.where(m, 255, 0)

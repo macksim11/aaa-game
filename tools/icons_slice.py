@@ -25,6 +25,7 @@ NAMES = {
  'icons_gear2': 'g_diamond_boots g_burger_pendant g_ender_pearl g_dragon_medal g_pinball_ring g_emerald_ring g_totem_ring lego kragle poutine bagel slushie dice trophy crown horseshoe potion taffy goal fountain',
  'icons_skill2': 'fire_fist ice_palm poison_touch rage_builder rage_up shield_up lifesteal skill_dmg berserker skill_master diamond_skin creeper_kick cinema pinball_wiz frozen_touch tornado_kick burger_fort shadow_clone revive star_storm',
 'icons_ui2': 'heart sword shield bolt target burst fists counter_arrows wingshoe blood lock check slot_weapon slot_gloves slot_necklace slot_gi slot_shoes slot_ring music sound',
+ 'icons_ui4': 'flag_start flag_white footprints soccer_ball boss_badge calendar replay vibrate shield_crack music_on sound_on cup gift_box verified stopwatch magic heart_plus key_gold clover crown_silver',
  'icons_ui3': 'clapper transfer stats close plus hourglass skull swords fast map question family note heal sparkle flame book belt key alert',
 }
 import sys as _s
