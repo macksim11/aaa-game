@@ -145,19 +145,20 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
     const k = w / img.naturalWidth, Wm = img.held.naturalWidth * k, Hm = img.held.naturalHeight * k;
     const left = -w / 2 - (shift ? shift[1] : 0) * k, top = -ih - (shift ? shift[0] : 0) * k;   // the clean frame's pixels stay exactly where they were
     const gx = left + hx * Wm, gy = top + hy * Hm, size = h * HELD;
-    const head = face ? [left + (face[0] - 0.06) * Wm, top, left + (face[2] + 0.06) * Wm, top + face[3] * Hm] : null;
+    const head = face ? [left + (face[0] - 0.08) * Wm, top, left + (face[2] + 0.08) * Wm, top + face[3] * Hm] : null;   // the whole head, hair included
     // never across his face, and never lying across his belly like a sticker: then it goes behind him (his fist still holds it)
     const torso = face ? [left + (face[0] + 0.02) * Wm, top + face[3] * Hm, left + (face[2] - 0.02) * Wm, top + 0.8 * Hm] : null;
-    const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
+    const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
     let ang2 = ang, behind = bad(ang);
     if (behind) {
-      const D = [180, 40, -40, 75, -75, 110, -110].map(d => (ang + d + 360) % 360);
+      const raised = face && gy < top + face[3] * Hm;   // a raised fist (cheer): up and outward first, never dangling it
+      const D = (raised ? [20, -20, 40, -40, 60, -60, 75, -75, 180] : [180, 40, -40, 75, -75, 110, -110]).map(d => (ang + d + 360) % 360);
       const clear = D.find(a => !bad(a));
       if (clear != null) { ang2 = clear; behind = false; }   // nearest clear direction: in front, fully visible
       else {   // no fully clear way (a fist in front of his chest, as in the kick): off his head, over the least of his body, tucked behind it
         const share = a => { for (let k = 0.05; k <= 1; k += 0.05) if (!weaponCrosses(opts.weapon, gx, gy, a, size, torso, k)) return k; return 1; };
-        const C2 = []; for (let a = 0; a < 360; a += 15) if (!weaponCrosses(opts.weapon, gx, gy, a, size, head)) C2.push(a);
-        if (C2.length) { ang2 = C2.reduce((b, a) => share(a) < share(b) ? a : b); behind = true; }   // behind him: never a sticker across his body (Emery 31.webp); its ends show past him
+        const C2 = []; for (let a = 0; a < 360; a += 15) if (!weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12)) C2.push(a);
+        if (C2.length) { ang2 = C2.reduce((b, a) => share(a) < share(b) ? a : b); behind = (WEAPON_GRIP[opts.weapon]?.size ?? 1) >= 0.9; }   // a short item (hockey stick, nunchucks) would vanish behind him: it stays in front   // behind him: never a sticker across his body (Emery 31.webp); its ends show past him
       }
     }
     if (behind) drawWeapon(ctx, opts.weapon, gx, gy, ang2, size, 'held');
