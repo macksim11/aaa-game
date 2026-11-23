@@ -6,35 +6,35 @@
     "f": "ride_0.webp",
     "w": 233,
     "h": 256,
-    "belt": "belt_ride_0.webp",
     "beltAlways": 1,
+    "belt": "belt_ride_0.webp",
     "beltC": [
-     0.44,
-     0.571
+     0.418,
+     0.561
     ]
    },
    {
     "f": "ride_1.webp",
     "w": 246,
-    "h": 254,
-    "belt": "belt_ride_1.webp",
+    "h": 253,
     "beltAlways": 1,
+    "belt": "belt_ride_1.webp",
     "beltC": [
-     0.468,
-     0.564
+     0.449,
+     0.551
     ]
    }
   ],
   "charge": [
    {
     "f": "charge_0.webp",
-    "w": 279,
+    "w": 280,
     "h": 250,
-    "belt": "belt_charge_0.webp",
     "beltAlways": 1,
+    "belt": "belt_charge_0.webp",
     "beltC": [
-     0.508,
-     0.553
+     0.481,
+     0.536
     ]
    }
   ]
