@@ -1,3 +1,4 @@
+import { reportObject, isTest, toCanvas, boxToCanvas } from './ares-contract.js';
 // Animated sprites cut from the Higgsfield sprite sheets (assets/chars, assets/mobs, assets/bosses).
 // Each folder has frames.json: { refHeight, anims: { idle: [{f,w,h}], run: [...], ... } }
 // Frames are trimmed and bottom-aligned (feet at the bottom edge).
@@ -112,6 +113,48 @@ const FPS = { ride: 6, idle: 4, run: 11, walk: 7, attack: 8, special: 6, action:
  * key: sheet key ("chars/arlo"); anim: animation name; x,y: feet position; h: height in px
  * opts: { t, facing (1 right / -1 left), frame (force index), alpha, squash, lean, flash, filter }
  */
+// WHERE A HELD ITEM GOES (one function for the drawing, the item-alone test render and the ARES report)
+function placeHeld(sheet, img, opts, w, ih, h) {
+  const [hx, hy, ang, , , face, shift] = sheet.hands[img.key];
+  const k = w / img.naturalWidth, Wm = img.held.naturalWidth * k, Hm = img.held.naturalHeight * k;
+  const left = -w / 2 - (shift ? shift[1] : 0) * k, top = -ih - (shift ? shift[0] : 0) * k;   // the clean frame's pixels stay exactly where they were
+  const gx = left + hx * Wm, gy = top + hy * Hm, size = h * HELD * (isTest() && sheet.testItemScale ? sheet.testItemScale : 1);   // test-only scale (ARES benchmark)
+  const head = face ? [left + (face[0] - 0.08) * Wm, top, left + (face[2] + 0.08) * Wm, top + face[3] * Hm] : null;   // the whole head, hair included
+  const torso = face ? [left + (face[0] + 0.02) * Wm, top + face[3] * Hm, left + (face[2] - 0.02) * Wm, top + 0.8 * Hm] : null;
+  // SPEC-LOCKED (contract feature specLock, row[8] = 1): this pose was set from an approved visual intent spec, so it is
+  // drawn exactly as specified (row[3] = 1: behind the body). The older heuristics below apply only to unlocked poses.
+  if (sheet.hands[img.key][8] === 1) return { gx, gy, size, ang, dataAngle: ang, behind: sheet.hands[img.key][3] === 1, rule: 'spec-locked', left, top, Wm, Hm, head, k };
+  const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
+  let ang2 = ang, behind = bad(ang), rule = 'data angle';
+  if (behind) {
+    const raised = face && gy < top + face[3] * Hm;
+    const D = (raised ? [20, -20, 40, -40, 60, -60, 75, -75, 180] : [180, 40, -40, 75, -75, 110, -110]).map(d => (ang + d + 360) % 360);
+    const clear = D.find(a => !bad(a));
+    if (clear != null) { ang2 = clear; behind = false; rule = 'heuristic: nearest clear direction'; }
+    else {
+      const share = a => { for (let q = 0.05; q <= 1; q += 0.05) if (!weaponCrosses(opts.weapon, gx, gy, a, size, torso, q)) return q; return 1; };
+      const C2 = []; for (let a = 0; a < 360; a += 15) if (!weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12)) C2.push(a);
+      if (C2.length) { ang2 = C2.reduce((b, a) => share(a) < share(b) ? a : b); behind = (WEAPON_GRIP[opts.weapon]?.size ?? 1) >= 0.9; rule = 'heuristic: least body overlap'; }
+    }
+  }
+  return { gx, gy, size, ang: ang2, dataAngle: ang, behind, rule, left, top, Wm, Hm, head, k };
+}
+function reportHeld(ctx, key, anim, frame, img, opts, P, beltCol) {
+  const g = WEAPON_GRIP[opts.weapon] || { grip: [0.26, 0.76], nat: 45 }; const S = P.size * (g.size || 1);
+  const r = (P.ang - g.nat) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r);
+  const loc = (u, v) => { const x = (u - g.grip[0]) * S, y = (v - g.grip[1]) * S; return toCanvas(ctx, P.gx + x * cs - y * sn, P.gy + x * sn + y * cs); };
+  const m = ctx.getTransform(); const mirrored = m.a * m.d < 0;
+  reportObject({ id: `${opts.weapon}@${key}#${img.key}`, kind: 'item', role: 'held', item: opts.weapon, parent: key,
+    state: { anim, frame, pose: img.key, weapon: opts.weapon, belt: beltCol },
+    transform: { x: toCanvas(ctx, P.gx, P.gy)[0], y: toCanvas(ctx, P.gx, P.gy)[1], angleDeg: mirrored ? (360 - P.ang) % 360 : P.ang, sizePx: Math.round(S * Math.abs(m.a)) },
+    anchors: { grip: toCanvas(ctx, P.gx, P.gy) }, polygon: [loc(0, 0), loc(1, 0), loc(1, 1), loc(0, 1)],
+    regions: { body: boxToCanvas(ctx, P.left, P.top, P.left + P.Wm, P.top + P.Hm), ...(P.head ? { head: boxToCanvas(ctx, ...P.head) } : {}) },
+    layerOrder: P.behind ? ['item', 'body', 'fist'] : ['body', 'item', 'fist'], visible: true, drawn: { belt: !!(img.belt && beltCol && opts.belt !== false), fist: !!img.fist, held: !!img.held },
+    source: { data: `assets/${key}/hands.json#${img.key}`, fields: { grip: '[0],[1]', angle: '[2]' }, dataAngle: P.dataAngle, rule: P.rule, icon: `assets/icons/g_${opts.weapon}.webp` } });
+}
+// test-only access to a loaded sheet's data (ARES benchmark mutations); returns nothing outside /?test
+export function testSheet(key) { return isTest() ? SHEETS[key] : undefined; }
+export { ARES_CONTRACT, sceneReport, resetScene } from './ares-contract.js';
 export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   const sheet = SHEETS[key]; if (!sheet) { loadSheet(key); return false; }
   const list = frames(sheet, anim); if (!list.length) return false;
@@ -140,41 +183,19 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   // HELD WEAPON, three layers (ARES hold_layers, Emery 2026-11-23): [item if it would cross his head] BODY [item] FIST.
   // The handle passes behind his fist; the rest of the item is in front of his body, never across his head.
   const hold = opts.weapon && img.held && img.fist && sheet.hands?.[img.key];
-  if (hold && !opts.onlyWeapon) {
-    const [hx, hy, ang, , , face, shift, clean] = sheet.hands[img.key];
-    const k = w / img.naturalWidth, Wm = img.held.naturalWidth * k, Hm = img.held.naturalHeight * k;
-    const left = -w / 2 - (shift ? shift[1] : 0) * k, top = -ih - (shift ? shift[0] : 0) * k;   // the clean frame's pixels stay exactly where they were
-    const gx = left + hx * Wm, gy = top + hy * Hm, size = h * HELD;
-    const head = face ? [left + (face[0] - 0.08) * Wm, top, left + (face[2] + 0.08) * Wm, top + face[3] * Hm] : null;   // the whole head, hair included
-    // never across his face, and never lying across his belly like a sticker: then it goes behind him (his fist still holds it)
-    const torso = face ? [left + (face[0] + 0.02) * Wm, top + face[3] * Hm, left + (face[2] - 0.02) * Wm, top + 0.8 * Hm] : null;
-    const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
-    let ang2 = ang, behind = bad(ang);
-    if (behind) {
-      const raised = face && gy < top + face[3] * Hm;   // a raised fist (cheer): up and outward first, never dangling it
-      const D = (raised ? [20, -20, 40, -40, 60, -60, 75, -75, 180] : [180, 40, -40, 75, -75, 110, -110]).map(d => (ang + d + 360) % 360);
-      const clear = D.find(a => !bad(a));
-      if (clear != null) { ang2 = clear; behind = false; }   // nearest clear direction: in front, fully visible
-      else {   // no fully clear way (a fist in front of his chest, as in the kick): off his head, over the least of his body, tucked behind it
-        const share = a => { for (let k = 0.05; k <= 1; k += 0.05) if (!weaponCrosses(opts.weapon, gx, gy, a, size, torso, k)) return k; return 1; };
-        const C2 = []; for (let a = 0; a < 360; a += 15) if (!weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12)) C2.push(a);
-        if (C2.length) { ang2 = C2.reduce((b, a) => share(a) < share(b) ? a : b); behind = (WEAPON_GRIP[opts.weapon]?.size ?? 1) >= 0.9; }   // a short item (hockey stick, nunchucks) would vanish behind him: it stays in front   // behind him: never a sticker across his body (Emery 31.webp); its ends show past him
-      }
-    }
-    if (behind) drawWeapon(ctx, opts.weapon, gx, gy, ang2, size, 'held');
-    ctx.drawImage(img.held, left, top, Wm, Hm);
-    if (!behind) drawWeapon(ctx, opts.weapon, gx, gy, ang2, size, 'held');
-    ctx.drawImage(img.fist, left, top, Wm, Hm);
+  if (hold) {
+    const P = placeHeld(sheet, img, opts, w, ih, h);
+    if (opts.onlyWeapon) { drawWeapon(ctx, opts.weapon, P.gx, P.gy, P.ang, P.size, 'held'); ctx.restore(); return true; }   // the item alone, placed EXACTLY as in the full drawing (test hook)
+    if (P.behind) drawWeapon(ctx, opts.weapon, P.gx, P.gy, P.ang, P.size, 'held');
+    ctx.drawImage(img.held, P.left, P.top, P.Wm, P.Hm);
+    if (!P.behind) drawWeapon(ctx, opts.weapon, P.gx, P.gy, P.ang, P.size, 'held');
+    ctx.drawImage(img.fist, P.left, P.top, P.Wm, P.Hm);
     const beltCol = BELT_COLOR || (img.beltAlways ? '#f4f4f4' : null);
     if (img.belt && beltCol && opts.belt !== false) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
-    if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(left, top, Wm, Hm); }
+    if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(P.left, P.top, P.Wm, P.Hm); }
+    if (isTest()) reportHeld(ctx, key, anim, i, img, opts, P, beltCol);
     ctx.restore();
     return true;
-  }
-  if (hold && opts.onlyWeapon) {   // test hook used by the Doctor's grip check: the item alone, where it is drawn
-    const [hx, hy, ang, , , , shift] = sheet.hands[img.key]; const k = w / img.naturalWidth;
-    drawWeapon(ctx, opts.weapon, -w / 2 - (shift ? shift[1] : 0) * k + hx * img.held.naturalWidth * k, -ih - (shift ? shift[0] : 0) * k + hy * img.held.naturalHeight * k, ang, h * HELD, 'held');
-    ctx.restore(); return true;
   }
   let frontWeapon = null;   // golf cart: the weapon rests against the seat in front of the cart's back
   // weapon goes BEHIND the sprite so his fist wraps around the handle
