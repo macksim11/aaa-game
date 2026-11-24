@@ -104,6 +104,8 @@ for anim, lst in tj['anims'].items():
         if n > 1:
             sz = ndimage.sum(np.ones(lab.shape), lab, range(1, n + 1))
             a[np.isin(lab, [i + 1 for i, v in enumerate(sz) if v < 150])] = 0
+            for i, sl in enumerate(ndimage.find_objects(lab), 1):   # motion marks cut by the left/right frame edge
+                if sl is not None and sz[i - 1] < 400 and (sl[1].start == 0 or sl[1].stop == a.shape[1]): a[lab == i] = 0
         clean = fj['anims'].get(anim, fj['anims']['idle'])[min(k, len(fj['anims'].get(anim, fj['anims']['idle'])) - 1)]
         ca = np.array(Image.open(f"{D}/{clean['f']}").convert('RGBA'))
         if not WEAPON:

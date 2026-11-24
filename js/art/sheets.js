@@ -213,7 +213,7 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
     if (armed.belt && opts.belt !== false) ctx.drawImage(tintMask(armed.belt, beltCol, 'b' + armed.key + key), ax, -ah, aw, ah);
     if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(ax, -ah, aw, ah); }
     if (isTest()) reportObject({ id: `${opts.weapon}@${key}#${img.key}`, kind: 'item', role: 'held', item: opts.weapon, parent: key, state: { anim, frame: i, pose: img.key, weapon: opts.weapon, armed: true },
-      box: boxToCanvas(ctx, ax, -ah, ax + aw, 0), layerOrder: ['armed'], visible: true, drawn: { armed: true, belt: !!armed.belt } });
+      box: boxToCanvas(ctx, ax, -ah, ax + aw, 0), transform: { x: toCanvas(ctx, 0, -ah / 2)[0], y: toCanvas(ctx, 0, -ah / 2)[1], angleDeg: null /* drawn by the artist: no composited angle to report */, sizePx: null }, layerOrder: ['armed'], visible: true, drawn: { armed: true, belt: !!armed.belt } });
     ctx.restore();
     return true;
   }
