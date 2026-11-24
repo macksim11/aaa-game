@@ -16,6 +16,7 @@ import sys, os, json, subprocess, tempfile, shutil
 import numpy as np
 from PIL import Image
 from scipy import ndimage
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from belt_tighten import tighten
 
 SPEC = 'idle:3+victory:1,run:4,punch:1+kick:1+hurt:1+down:1'
 sheet, D = sys.argv[1], sys.argv[2]; rest = sys.argv[3:]
@@ -140,7 +141,7 @@ for anim, lst in wj['anims'].items():
         shutil.copy(f"{work}/{w['f']}", f"{D}/{w['f']}")
         entry = {'f': w['f'], 'w': w['w'], 'h': w['h'], 'dx': w['dx']}
         if not WEAPON: shutil.copy(f'{work}/swt_{name}.webp', f'{D}/swt_{name}.webp'); entry['t'] = f'swt_{name}.webp'
-        if w.get('belt'): shutil.copy(f"{work}/{w['belt']}", f'{D}/{bpre}_{name}.webp'); entry['b'] = f'{bpre}_{name}.webp'
+        if w.get('belt'): shutil.copy(f"{work}/{w['belt']}", f'{D}/{bpre}_{name}.webp'); entry['b'] = f'{bpre}_{name}.webp'; tighten(f"{D}/{w['f']}", f'{D}/{bpre}_{name}.webp')
         if WEAPON: tgt.setdefault('arm', {})[WEAPON] = entry
         else: tgt['sw'] = entry
         print(D, name, entry)

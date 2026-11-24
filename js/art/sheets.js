@@ -19,10 +19,11 @@ export function loadSheet(key) {
         if (fr.fist) { const fm = new Image(); fm.onload = () => { im.fist = fm; }; fm.src = base + fr.fist; }   // FRONT layer: the fist (and anything drawn over the handle)
         if (fr.held) { const hm = new Image(); hm.onload = () => { im.held = hm; }; hm.src = base + fr.held; }   // BODY layer of the same pose holding something (marker removed with the clean original's true pixels)
         if (fr.belt) { const bm = new Image(); bm.onload = () => { im.belt = bm; }; bm.src = base + fr.belt; }  // recolourable belt mask
-        if (fr.sw) { const a = { w: fr.sw.w, h: fr.sw.h, dx: fr.sw.dx || 0, key: `sw_${name}_${k}` }; im.sw = a;   // ARMED pose: drawn by the artist holding a sword (v16)
-          for (const [p, f] of [['img', fr.sw.f], ['tint', fr.sw.t], ['belt', fr.sw.b]]) if (f) { const x = new Image(); x.onload = () => { a[p] = x; }; x.src = base + f; } }
-        if (fr.arm) { im.arm = {}; for (const [id, e] of Object.entries(fr.arm)) { const a = { w: e.w, h: e.h, dx: e.dx || 0, key: `a_${id}_${name}_${k}` }; im.arm[id] = a;   // pick / staff / stick drawn by the artist
-          for (const [p, f] of [['img', e.f], ['belt', e.b]]) if (f) { const x = new Image(); x.onload = () => { a[p] = x; }; x.src = base + f; } } }
+        // v16 artist-drawn variants, fetched on first use only (phones download just the equipped weapon / current outfit)
+        const lazy = (e, key) => ({ w: e.w, h: e.h, dx: e.dx || 0, key, files: { img: e.f, tint: e.t, belt: e.b }, base });
+        if (fr.sw) im.sw = lazy(fr.sw, `sw_${name}_${k}`);                                                                    // holding a sword
+        if (fr.arm) { im.arm = {}; for (const [id, e] of Object.entries(fr.arm)) im.arm[id] = lazy(e, `a_${id}_${name}_${k}`); }   // pick / staff / stick / nunchucks
+        if (fr.o) { im.o = {}; for (const [id, e] of Object.entries(fr.o)) im.o[id] = lazy(e, `o_${id}_${name}_${k}`); }         // a ride with Arlo in each outfit
       })));
       anims[name] = anims[name].filter(Boolean);
     }));
@@ -50,7 +51,22 @@ function beltTint(img, color) {
 // ---- swords drawn by the artist (armed frames, v16) ----
 // The armed frames show the sword in iron grey; other swords repaint its shading mask in their material colour.
 const SWORD_TINT = { iron_sword: null, wood_sword: '#c98a4b', stone_sword: '#a3a0a8', diamond_sword: '#3fe0ea', netherite_sword: '#6e5578' };
-function armedFor(img, weapon) { const a = weapon in SWORD_TINT ? img.sw : img.arm?.[weapon]; return a && a.img ? a : null; }
+function fetchVariant(a) {   // start loading a variant's pictures once; it is drawn when its main picture is ready
+  if (!a || a.started) return a; a.started = true;
+  for (const [p, f] of Object.entries(a.files)) if (f) { const x = new Image(); x.onload = () => { a[p] = x; }; x.src = a.base + f; }
+  return a;
+}
+const ready = a => a && a.img && (!a.files.belt || a.belt) && (!a.files.tint || a.tint);   // never half-drawn (e.g. a magenta belt for one frame)
+const PREFETCHED = new Set();
+function prefetchAll(sheet, pick, tag) {   // the first time a weapon / outfit is shown, fetch it for every pose of that sheet
+  if (PREFETCHED.has(tag)) return; PREFETCHED.add(tag);
+  for (const l of Object.values(sheet.anims)) for (const im of l) fetchVariant(pick(im));
+}
+function armedFor(sheet, img, weapon, key) {
+  const pick = im => weapon in SWORD_TINT ? im.sw : im.arm?.[weapon];
+  const a = pick(img); if (!a) return null;
+  prefetchAll(sheet, pick, key + '|' + weapon); fetchVariant(a); return ready(a) ? a : null;
+}
 function tintMask(mask, color, keyName) {
   const key = keyName + '|' + color; let c = TINTS.get(key);
   if (c) return c;
@@ -202,7 +218,7 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   if (opts.filter) ctx.filter = opts.filter;
   // HELD WEAPON, three layers (ARES hold_layers, Emery 2026-11-23): [item if it would cross his head] BODY [item] FIST.
   // The handle passes behind his fist; the rest of the item is in front of his body, never across his head.
-  const armed = opts.weapon && armedFor(img, opts.weapon);
+  const armed = opts.weapon && armedFor(sheet, img, opts.weapon, key);
   if (armed) {   // the artist's own pose holding the sword: no compositing, nothing can float or cross his face
     const aw = armed.w * scale, ah = armed.h * scale, ax = -aw / 2 + armed.dx * scale;
     if (opts.onlyWeapon) { ctx.restore(); return true; }
@@ -234,7 +250,12 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   }
   let frontWeapon = null;   // golf cart: the weapon rests against the seat in front of the cart's back
   // weapon goes BEHIND the sprite so his fist wraps around the handle
-  if (opts.weapon && sheet.hands?.[img.key] && (!img.fist || sheet.hands[img.key][3])) {   /* behind the body (no fist layer, or the blade would cross his face, or strapped on his back on a ride) */ const [hx, hy, ang] = sheet.hands[img.key]; const ride = key.startsWith('rides/'); if (key === 'rides/golfcart') { frontWeapon = () => drawWeapon(ctx, opts.weapon, -w / 2 + (hx - 0.1) * w, -ih + (hy + 0.12) * ih, 345, ih * 0.3, 'carry'); }   /* leaning on the seat behind him */ else drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, ride ? ih * 0.38 : h * HELD, ride ? 'carry' : img.key); }
+  if (opts.weapon === 'nunchucks' && key.startsWith('rides/') && img.beltC) {   // riding: nunchucks hang from his belt (v16; strapped on his back they poked up behind his head)
+    const [bx, by] = img.beltC; const nx = -w / 2 + (bx - 0.07) * w, ny = -ih + (by - 0.01) * ih;
+    if (/golfcart|car|hippo|chicken/.test(key)) frontWeapon = () => drawWeapon(ctx, 'nunchucks', nx, ny, 192, ih * 0.24, 'carry');   // his hip is hidden by the seat / door / body: hung over the side, in front
+    else drawWeapon(ctx, 'nunchucks', nx, ny, 192, ih * 0.24, 'carry');
+  }
+  else if (opts.weapon && sheet.hands?.[img.key] && (!img.fist || sheet.hands[img.key][3])) {   /* behind the body (no fist layer, or the blade would cross his face, or strapped on his back on a ride) */ const [hx, hy, ang] = sheet.hands[img.key]; const ride = key.startsWith('rides/'); if (key === 'rides/golfcart') { frontWeapon = () => drawWeapon(ctx, opts.weapon, -w / 2 + (hx - 0.17) * w, -ih + (hy + 0.16) * ih, 345, ih * 0.27, 'carry');   /* v16: lower and further back so a pickaxe head clears his face */ }   /* leaning on the seat behind him */ else drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, ride ? ih * 0.38 : h * HELD, ride ? 'carry' : img.key); }
   // on rides his hands are on the handlebars / reins, so the weapon is strapped across his back (placed from the belt position)
   else if (opts.weapon && img.beltC && key.startsWith('rides/')) {
     const o = RIDE_BACK[key.slice(6)] || RIDE_BACK.default; const [bx, by] = img.beltC;
@@ -242,7 +263,10 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
     else frontWeapon = () => drawWeapon(ctx, opts.weapon, -w / 2 + (bx + o.dx) * w, -ih + (by + o.dy) * ih, o.ang, ih * o.size, 'back');   // golf cart: resting in the back seat
   }
   if (opts.onlyWeapon) { frontWeapon?.(); if (opts.weapon && img.fist && sheet.hands?.[img.key]) { const [hx, hy, ang] = sheet.hands[img.key]; drawWeapon(ctx, opts.weapon, -w / 2 + hx * w, -ih + hy * ih, ang, h * HELD, img.key); } ctx.restore(); return true; }   // test hook used by the Doctor's grip check
-  ctx.drawImage(img, -w / 2, -ih, w, ih);
+  let ov = opts.outfit && img.o?.[opts.outfit];   // ride drawn with Arlo in his current outfit, once that picture has loaded
+  if (ov) { prefetchAll(sheet, im => im.o?.[opts.outfit], key + '|' + opts.outfit); fetchVariant(ov); if (!ready(ov)) ov = null; }
+  if (ov) ctx.drawImage(ov.img, -ov.w * scale / 2 + ov.dx * scale, -ov.h * scale, ov.w * scale, ov.h * scale);
+  else ctx.drawImage(img, -w / 2, -ih, w, ih);
   frontWeapon?.();
   // held weapon: in front of the body, then the fingers on top so the fist wraps around the handle
   if (opts.weapon && img.fist && sheet.hands?.[img.key]) {
@@ -251,7 +275,8 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
     ctx.drawImage(img.fist, -w / 2, -ih, w, ih);
   }
   const beltCol = BELT_COLOR || (img.beltAlways ? '#f4f4f4' : null);   // marker belts are always repainted (even white)
-  if (img.belt && beltCol && opts.belt !== false && (key.startsWith('chars/arlo') || key.startsWith('rides/'))) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
+  if (ov) { if (ov.belt && beltCol && opts.belt !== false) ctx.drawImage(tintMask(ov.belt, beltCol, 'ob' + key + img.key + opts.outfit), -ov.w * scale / 2 + ov.dx * scale, -ov.h * scale, ov.w * scale, ov.h * scale); }
+  else if (img.belt && beltCol && opts.belt !== false && (key.startsWith('chars/arlo') || key.startsWith('rides/'))) ctx.drawImage(beltTint(img, beltCol), -w / 2, -ih, w, ih);
   if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(-w / 2, -ih, w, ih); }
   ctx.restore();
   return true;

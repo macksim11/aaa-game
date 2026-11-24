@@ -126,7 +126,7 @@ export class Scene {
     if (rideKey && sheetReady(rideKey)) {
       const rh = spriteHeight(rideKey) * this.u;
       const charging = (a.anim.attack || 0) > 0.05;
-      drawAnim(ctx, rideKey, charging ? 'charge' : 'ride', x, y - (moving ? Math.abs(Math.sin(pose.t * 9)) * 2 * this.u : 0), rh, { ...opts, frame: charging ? 0 : (moving ? null : 0), lean: 0 });
+      drawAnim(ctx, rideKey, charging ? 'charge' : 'ride', x, y - (moving ? Math.abs(Math.sin(pose.t * 9)) * 2 * this.u : 0), rh, { ...opts, frame: charging ? 0 : (moving ? null : 0), lean: 0, outfit: a.sheet?.split('/')[1], weapon: a.kind === 'person' ? a.weapon : null });
     } else if (a.mount) {
       if (rideKey) loadSheet(rideKey);
       const seat = drawMount(ctx, a.mount, x, y, this.u * 0.9, { t: this.t, moving, facing: a.facing || 1 });

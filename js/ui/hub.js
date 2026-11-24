@@ -173,7 +173,7 @@ function drawHomeArt(ctx, w, h, t, u, bg, hits, { fam, missing, pets, stageH, ca
   // Arlo (or Arlo on his ride)
   { const sp = HOME_SPOTS.arlo; const [x, y] = P(sp.ix, sp.iy); const ride = S.mounts.equipped;
     drawn.push({ y, f: () => {
-      if (ride && sheetReady('rides/' + ride)) { const rh = adult(sp.iy) * spriteHeight('rides/' + ride) / 112; drawAnim(ctx, 'rides/' + ride, 'ride', x, y, rh, { t, frame: 0 }); add('arlo', x, y, rh * 0.7, rh); }
+      if (ride && sheetReady('rides/' + ride)) { const rh = adult(sp.iy) * spriteHeight('rides/' + ride) / 112; drawAnim(ctx, 'rides/' + ride, 'ride', x, y, rh, { t, frame: 0, outfit: arloSheetId(S), weapon: arloWeapon(S) }); add('arlo', x, y, rh * 0.7, rh); }
       else { if (ride) preloadSheets(['rides/' + ride]); const ah = adult(sp.iy) * 100 / 112; drawAnim(ctx, 'chars/' + arloSheetId(S), Math.sin(t * 0.4) > 0.92 ? 'victory' : 'idle', x, y, ah, { t, weapon: arloWeapon(S) }); add('arlo', x, y, ah * 0.5, ah); }
     } }); }
   // pets wander on the floor and nap in the pet beds
@@ -597,7 +597,7 @@ function ridesSection(sec, body) {
   for (const [id, mt] of Object.entries(MOUNTS)) {
     const owned = !!S.mounts.owned[id]; const riding = S.mounts.equipped === id;
     preloadSheets(['rides/' + id]);
-    const pic = canvasBox(90, 80, (ctx, w, h, t) => { if (!drawAnim(ctx, 'rides/' + id, 'ride', w / 2, h - 4, h * 0.95, { t, frame: riding ? undefined : 0, noShadow: true })) drawMount(ctx, id, w / 2, h - 6, 0.55, { t, moving: riding }); }, true);
+    const pic = canvasBox(90, 80, (ctx, w, h, t) => { if (!drawAnim(ctx, 'rides/' + id, 'ride', w / 2, h - 4, h * 0.95, { t, frame: riding ? undefined : 0, noShadow: true, outfit: arloSheetId(S) })) drawMount(ctx, id, w / 2, h - 6, 0.55, { t, moving: riding }); }, true);
     const owns = Object.entries(mt.owned).map(([k, v]) => `${k.replace('Pct', '').toUpperCase()} +${Math.round(v * 100)}%`).join(', ');
     let action;
     if (owned) action = el('button', { class: 'btn small ' + (riding ? 'gray' : 'blue'), onclick: () => { S.mounts.equipped = riding ? null : id; save(); sfx('honk'); refresh(); } }, riding ? 'Get off' : 'Ride!');

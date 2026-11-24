@@ -11,7 +11,44 @@
     "beltC": [
      0.411,
      0.633
-    ]
+    ],
+    "o": {
+     "arlo_hoodie": {
+      "f": "o_hoodie_ride_0.webp",
+      "w": 269,
+      "h": 255,
+      "dx": 0,
+      "b": "ob_hoodie_ride_0.webp"
+     },
+     "arlo_karate_gi": {
+      "f": "o_karate_gi_ride_0.webp",
+      "w": 269,
+      "h": 255,
+      "dx": 0,
+      "b": "ob_karate_gi_ride_0.webp"
+     },
+     "arlo_leather_tunic": {
+      "f": "o_leather_tunic_ride_0.webp",
+      "w": 268,
+      "h": 255,
+      "dx": 0,
+      "b": "ob_leather_tunic_ride_0.webp"
+     },
+     "arlo_iron_chest": {
+      "f": "o_iron_chest_ride_0.webp",
+      "w": 269,
+      "h": 255,
+      "dx": 0,
+      "b": "ob_iron_chest_ride_0.webp"
+     },
+     "arlo_diamond_chest": {
+      "f": "o_diamond_chest_ride_0.webp",
+      "w": 269,
+      "h": 255,
+      "dx": 0,
+      "b": "ob_diamond_chest_ride_0.webp"
+     }
+    }
    },
    {
     "f": "ride_1.webp",
@@ -22,7 +59,44 @@
     "beltC": [
      0.412,
      0.628
-    ]
+    ],
+    "o": {
+     "arlo_hoodie": {
+      "f": "o_hoodie_ride_1.webp",
+      "w": 265,
+      "h": 255,
+      "dx": -1,
+      "b": "ob_hoodie_ride_1.webp"
+     },
+     "arlo_karate_gi": {
+      "f": "o_karate_gi_ride_1.webp",
+      "w": 265,
+      "h": 255,
+      "dx": -1,
+      "b": "ob_karate_gi_ride_1.webp"
+     },
+     "arlo_leather_tunic": {
+      "f": "o_leather_tunic_ride_1.webp",
+      "w": 265,
+      "h": 255,
+      "dx": -1,
+      "b": "ob_leather_tunic_ride_1.webp"
+     },
+     "arlo_iron_chest": {
+      "f": "o_iron_chest_ride_1.webp",
+      "w": 265,
+      "h": 255,
+      "dx": -1,
+      "b": "ob_iron_chest_ride_1.webp"
+     },
+     "arlo_diamond_chest": {
+      "f": "o_diamond_chest_ride_1.webp",
+      "w": 265,
+      "h": 255,
+      "dx": -1,
+      "b": "ob_diamond_chest_ride_1.webp"
+     }
+    }
    }
   ],
   "charge": [
@@ -35,7 +109,44 @@
     "beltC": [
      0.458,
      0.618
-    ]
+    ],
+    "o": {
+     "arlo_hoodie": {
+      "f": "o_hoodie_charge_0.webp",
+      "w": 286,
+      "h": 252,
+      "dx": -1,
+      "b": "ob_hoodie_charge_0.webp"
+     },
+     "arlo_karate_gi": {
+      "f": "o_karate_gi_charge_0.webp",
+      "w": 285,
+      "h": 252,
+      "dx": 0,
+      "b": "ob_karate_gi_charge_0.webp"
+     },
+     "arlo_leather_tunic": {
+      "f": "o_leather_tunic_charge_0.webp",
+      "w": 287,
+      "h": 252,
+      "dx": -1,
+      "b": "ob_leather_tunic_charge_0.webp"
+     },
+     "arlo_iron_chest": {
+      "f": "o_iron_chest_charge_0.webp",
+      "w": 287,
+      "h": 252,
+      "dx": -1,
+      "b": "ob_iron_chest_charge_0.webp"
+     },
+     "arlo_diamond_chest": {
+      "f": "o_diamond_chest_charge_0.webp",
+      "w": 286,
+      "h": 252,
+      "dx": -1,
+      "b": "ob_diamond_chest_charge_0.webp"
+     }
+    }
    }
   ]
  }

@@ -35,6 +35,13 @@
       "h": 285,
       "dx": 15.0,
       "b": "ab_hockey_stick_idle_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_idle_0.webp",
+      "w": 221,
+      "h": 285,
+      "dx": 13.0,
+      "b": "ab_nunchucks_idle_0.webp"
      }
     },
     "sw": {
@@ -79,6 +86,13 @@
       "h": 285,
       "dx": 15.0,
       "b": "ab_hockey_stick_idle_1.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_idle_1.webp",
+      "w": 221,
+      "h": 285,
+      "dx": 13.0,
+      "b": "ab_nunchucks_idle_1.webp"
      }
     },
     "sw": {
@@ -123,6 +137,13 @@
       "h": 285,
       "dx": 17.0,
       "b": "ab_hockey_stick_idle_2.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_idle_2.webp",
+      "w": 223,
+      "h": 285,
+      "dx": 14.0,
+      "b": "ab_nunchucks_idle_2.webp"
      }
     },
     "sw": {
@@ -169,6 +190,13 @@
       "h": 290,
       "dx": 22.0,
       "b": "ab_hockey_stick_victory_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_victory_0.webp",
+      "w": 281,
+      "h": 293,
+      "dx": 25.0,
+      "b": "ab_nunchucks_victory_0.webp"
      }
     },
     "sw": {
@@ -215,6 +243,13 @@
       "h": 282,
       "dx": 17.0,
       "b": "ab_hockey_stick_run_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_run_0.webp",
+      "w": 218,
+      "h": 280,
+      "dx": 2.0,
+      "b": "ab_nunchucks_run_0.webp"
      }
     },
     "sw": {
@@ -259,6 +294,13 @@
       "h": 275,
       "dx": 14.0,
       "b": "ab_hockey_stick_run_1.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_run_1.webp",
+      "w": 251,
+      "h": 279,
+      "dx": 8.0,
+      "b": "ab_nunchucks_run_1.webp"
      }
     },
     "sw": {
@@ -303,6 +345,13 @@
       "h": 284,
       "dx": 16.0,
       "b": "ab_hockey_stick_run_2.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_run_2.webp",
+      "w": 225,
+      "h": 280,
+      "dx": 8.0,
+      "b": "ab_nunchucks_run_2.webp"
      }
     },
     "sw": {
@@ -347,6 +396,13 @@
       "h": 275,
       "dx": 16.0,
       "b": "ab_hockey_stick_run_3.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_run_3.webp",
+      "w": 229,
+      "h": 279,
+      "dx": 12.0,
+      "b": "ab_nunchucks_run_3.webp"
      }
     },
     "sw": {
@@ -393,6 +449,13 @@
       "h": 276,
       "dx": 49.0,
       "b": "ab_hockey_stick_punch_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_punch_0.webp",
+      "w": 331,
+      "h": 280,
+      "dx": 58.0,
+      "b": "ab_nunchucks_punch_0.webp"
      }
     },
     "sw": {
@@ -439,6 +502,13 @@
       "h": 277,
       "dx": 10.0,
       "b": "ab_hockey_stick_kick_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_kick_0.webp",
+      "w": 297,
+      "h": 269,
+      "dx": 17.0,
+      "b": "ab_nunchucks_kick_0.webp"
      }
     },
     "sw": {
@@ -485,6 +555,13 @@
       "h": 280,
       "dx": -17.0,
       "b": "ab_hockey_stick_hurt_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_hurt_0.webp",
+      "w": 244,
+      "h": 273,
+      "dx": -14.0,
+      "b": "ab_nunchucks_hurt_0.webp"
      }
     },
     "sw": {
@@ -529,6 +606,13 @@
       "h": 199,
       "dx": 0.0,
       "b": "ab_hockey_stick_down_0.webp"
+     },
+     "nunchucks": {
+      "f": "a_nunchucks_down_0.webp",
+      "w": 291,
+      "h": 202,
+      "dx": 0.0,
+      "b": "ab_nunchucks_down_0.webp"
      }
     },
     "sw": {
