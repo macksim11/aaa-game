@@ -45,7 +45,7 @@ function beltTint(img, color) {
 }
 // ---- weapons drawn in Arlo's hand ----
 // grip = where the handle is in the weapon picture (0..1), nat = direction the weapon points in its picture (deg, 0 = up)
-const WEAPON_GRIP = { hockey_stick: { grip: [0.76, 0.2], nat: 225, backAngle: 330, idleAngle: 125, size: 0.78 }, bo_staff: { grip: [0.5, 0.5], nat: 45, idleAngle: 0, idleGrip: [0.37, 0.63], size: 1.25 }, nunchucks: { grip: [0.18, 0.86], nat: 15, idleAngle: 95, size: 0.8 }, diamond_pick: { grip: [0.2, 0.82], nat: 45, idleAngle: 70 } };
+const WEAPON_GRIP = { hockey_stick: { grip: [0.76, 0.2], nat: 225, backAngle: 330, idleAngle: 125, size: 0.78 }, bo_staff: { grip: [0.5, 0.5], nat: 45, idleAngle: 0, idleGrip: [0.37, 0.63], size: 1.25, poseAngle: { victory_0: 8 } /* held at its middle: raised upright, not across his arm */ }, nunchucks: { grip: [0.18, 0.86], nat: 15, idleAngle: 95, size: 0.8 }, diamond_pick: { grip: [0.2, 0.82], nat: 45, idleAngle: 70, poseAngle: { victory_0: 75 } /* per-pose override for one weapon: the raised pick tilts out so its head clears his hair */ } };
 // where the weapon sits on his back for each ride (offsets from the belt, as a fraction of the frame); in the golf cart
 // and car he sits low behind the seat, so the handle pokes up higher over his shoulder
 const RIDE_BACK = { default: { dx: -0.02, dy: -0.17, ang: 215, size: 0.36 }, golfcart: { dx: -0.12, dy: -0.1, ang: 215, size: 0.3, front: true }, car: { dx: -0.03, dy: -0.33, ang: 205, size: 0.42 } };
@@ -59,6 +59,7 @@ function drawWeapon(ctx, id, hx, hy, angleDeg, size, frameKey = '') {
   const im = weaponImg(id); if (!im) return;
   const g = WEAPON_GRIP[id] || { grip: [0.26, 0.76], nat: 45 };   // grip = middle of the hilt (sits inside the fist)
   if (g.idleAngle != null && frameKey.startsWith('idle')) angleDeg = g.idleAngle;
+  if (g.poseAngle && g.poseAngle[frameKey] != null) angleDeg = g.poseAngle[frameKey];
   if (g.backAngle != null && frameKey === 'back') angleDeg = g.backAngle;   // e.g. hockey stick on his back: blade up over the shoulder   // e.g. hockey stick rests blade-down
   const S = size * (g.size || 1);
   ctx.save(); ctx.translate(hx, hy); ctx.rotate((angleDeg - g.nat) * Math.PI / 180);
@@ -124,7 +125,7 @@ function placeHeld(sheet, img, opts, w, ih, h) {
   // SPEC-LOCKED (contract feature specLock, row[8] = 1): this pose was set from an approved visual intent spec, so it is
   // drawn exactly as specified (row[3] = 1: behind the body). The older heuristics below apply only to unlocked poses.
   if (sheet.hands[img.key][8] === 1) return { gx, gy, size, ang, dataAngle: ang, behind: sheet.hands[img.key][3] === 1, rule: 'spec-locked', left, top, Wm, Hm, head, k };
-  const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.12) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
+  const bad = a => head && (weaponCrosses(opts.weapon, gx, gy, a, size, head, 0.04) || weaponCrosses(opts.weapon, gx, gy, a, size, torso, 0.3));
   let ang2 = ang, behind = bad(ang), rule = 'data angle';
   if (behind) {
     const raised = face && gy < top + face[3] * Hm;

@@ -58,7 +58,7 @@ export class Scene {
   draw() {
     const { ctx, w, h } = this;
     ctx.save();
-    if (this.shakeT > 0) ctx.translate((Math.random() - 0.5) * 10 * this.shakeT, (Math.random() - 0.5) * 10 * this.shakeT);
+    if (this.shakeT > 0 && !GAME.paused) ctx.translate((Math.random() - 0.5) * 10 * this.shakeT, (Math.random() - 0.5) * 10 * this.shakeT);   // no shaking while paused
     const bg = BG_FILE[this.theme] ? bgImage(BG_FILE[this.theme]) : null;
     if (bg) {
       const bw = bg.naturalWidth * h / bg.naturalHeight; const off = ((this.cam * 0.8) % bw + bw) % bw;
