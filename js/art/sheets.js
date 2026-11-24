@@ -19,6 +19,10 @@ export function loadSheet(key) {
         if (fr.fist) { const fm = new Image(); fm.onload = () => { im.fist = fm; }; fm.src = base + fr.fist; }   // FRONT layer: the fist (and anything drawn over the handle)
         if (fr.held) { const hm = new Image(); hm.onload = () => { im.held = hm; }; hm.src = base + fr.held; }   // BODY layer of the same pose holding something (marker removed with the clean original's true pixels)
         if (fr.belt) { const bm = new Image(); bm.onload = () => { im.belt = bm; }; bm.src = base + fr.belt; }  // recolourable belt mask
+        if (fr.sw) { const a = { w: fr.sw.w, h: fr.sw.h, dx: fr.sw.dx || 0, key: `sw_${name}_${k}` }; im.sw = a;   // ARMED pose: drawn by the artist holding a sword (v16)
+          for (const [p, f] of [['img', fr.sw.f], ['tint', fr.sw.t], ['belt', fr.sw.b]]) if (f) { const x = new Image(); x.onload = () => { a[p] = x; }; x.src = base + f; } }
+        if (fr.arm) { im.arm = {}; for (const [id, e] of Object.entries(fr.arm)) { const a = { w: e.w, h: e.h, dx: e.dx || 0, key: `a_${id}_${name}_${k}` }; im.arm[id] = a;   // pick / staff / stick drawn by the artist
+          for (const [p, f] of [['img', e.f], ['belt', e.b]]) if (f) { const x = new Image(); x.onload = () => { a[p] = x; }; x.src = base + f; } } }
       })));
       anims[name] = anims[name].filter(Boolean);
     }));
@@ -41,6 +45,21 @@ function beltTint(img, color) {
   x.globalCompositeOperation = 'multiply'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
   x.globalCompositeOperation = 'destination-in'; x.drawImage(img.belt, 0, 0);
   if (/^#(1|2)/.test(color)) { x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.18; x.drawImage(img.belt, 0, 0); } // keep a little shine on dark belts
+  TINTS.set(key, c); return c;
+}
+// ---- swords drawn by the artist (armed frames, v16) ----
+// The armed frames show the sword in iron grey; other swords repaint its shading mask in their material colour.
+const SWORD_TINT = { iron_sword: null, wood_sword: '#c98a4b', stone_sword: '#a3a0a8', diamond_sword: '#3fe0ea', netherite_sword: '#6e5578' };
+function armedFor(img, weapon) { const a = weapon in SWORD_TINT ? img.sw : img.arm?.[weapon]; return a && a.img ? a : null; }
+function tintMask(mask, color, keyName) {
+  const key = keyName + '|' + color; let c = TINTS.get(key);
+  if (c) return c;
+  c = document.createElement('canvas'); c.width = mask.naturalWidth; c.height = mask.naturalHeight;
+  const x = c.getContext('2d');
+  x.drawImage(mask, 0, 0);
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'destination-in'; x.drawImage(mask, 0, 0);
+  x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.16; x.drawImage(mask, 0, 0);   // keep a little shine
   TINTS.set(key, c); return c;
 }
 // ---- weapons drawn in Arlo's hand ----
@@ -183,6 +202,21 @@ export function drawAnim(ctx, key, anim, x, y, h, opts = {}) {
   if (opts.filter) ctx.filter = opts.filter;
   // HELD WEAPON, three layers (ARES hold_layers, Emery 2026-11-23): [item if it would cross his head] BODY [item] FIST.
   // The handle passes behind his fist; the rest of the item is in front of his body, never across his head.
+  const armed = opts.weapon && armedFor(img, opts.weapon);
+  if (armed) {   // the artist's own pose holding the sword: no compositing, nothing can float or cross his face
+    const aw = armed.w * scale, ah = armed.h * scale, ax = -aw / 2 + armed.dx * scale;
+    if (opts.onlyWeapon) { ctx.restore(); return true; }
+    ctx.drawImage(armed.img, ax, -ah, aw, ah);
+    const tint = SWORD_TINT[opts.weapon];
+    if (tint && armed.tint) ctx.drawImage(tintMask(armed.tint, tint, armed.key + key), ax, -ah, aw, ah);
+    const beltCol = BELT_COLOR || '#f4f4f4';
+    if (armed.belt && opts.belt !== false) ctx.drawImage(tintMask(armed.belt, beltCol, 'b' + armed.key + key), ax, -ah, aw, ah);
+    if (opts.flash) { ctx.globalCompositeOperation = 'source-atop'; ctx.globalAlpha = opts.flash; ctx.fillStyle = '#fff'; ctx.fillRect(ax, -ah, aw, ah); }
+    if (isTest()) reportObject({ id: `${opts.weapon}@${key}#${img.key}`, kind: 'item', role: 'held', item: opts.weapon, parent: key, state: { anim, frame: i, pose: img.key, weapon: opts.weapon, armed: true },
+      box: boxToCanvas(ctx, ax, -ah, ax + aw, 0), layerOrder: ['armed'], visible: true, drawn: { armed: true, belt: !!armed.belt } });
+    ctx.restore();
+    return true;
+  }
   const hold = opts.weapon && img.held && img.fist && sheet.hands?.[img.key];
   if (hold) {
     const P = placeHeld(sheet, img, opts, w, ih, h);

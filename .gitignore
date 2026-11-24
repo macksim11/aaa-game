@@ -11,3 +11,4 @@ tools/doctor/node_modules/
 tools/doctor/report/
 tools/doctor/.sim.mjs
 tools/doctor/package-lock.json
+tools/doctor/.cache/

@@ -41,7 +41,7 @@ def remove_bg(im, key):
         # Enclosed near-white pockets are KEPT by default: they are usually white clothing, fur, teeth or a beard.
         # (Clearing every pocket > 900 px made white tops, cat chests and beards see-through: v16 "accidental
         # transparency" bug.) Real gaps between arms/legs are listed so they can be cleared on purpose with
-        # --clear-pockets (all) or --clear-pocket x,y (the pocket containing that sheet pixel; repeatable).
+        # --clear-pockets (all), --clear-outlined (pockets ringed by dark outline, not by cloth shading) or --clear-pocket x,y (the pocket containing that sheet pixel; repeatable).
         from scipy import ndimage  # noqa
         lab, n = ndimage.label(bgmask & ~seen)
         sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
@@ -49,7 +49,12 @@ def remove_bg(im, key):
         for i, s in enumerate(sizes, 1):
             if s <= 900: continue
             m = lab == i; ys, xs = np.nonzero(m); cx, cy = int(xs.mean()), int(ys.mean())
-            if '--clear-pockets' in sys.argv or any(m[py, px] for px, py in picks): seen |= m; print(f'pocket cleared at {cx},{cy} ({int(s)} px)', file=sys.stderr)
+            outlined = False
+            if '--clear-outlined' in sys.argv:   # a gap is ringed by dark outlines; white cloth by its own light-grey shading
+                ring = ndimage.binary_dilation(m, iterations=5) & ~m
+                lum = (0.3 * r + 0.59 * g + 0.11 * b)[ring]
+                outlined = ((lum > 150) & (lum <= 238)).mean() < 0.18 and (lum < 110).mean() > 0.75
+            if '--clear-pockets' in sys.argv or outlined or any(m[py, px] for px, py in picks): seen |= m; print(f'pocket cleared at {cx},{cy} ({int(s)} px)', file=sys.stderr)
             else: print(f'NOTE white pocket kept at {cx},{cy} ({int(s)} px): if it is a gap between limbs, pass --clear-pocket {xs[0]},{ys[0]}', file=sys.stderr)
         bg = seen
     else:

@@ -13,7 +13,38 @@
      0.786
     ],
     "held": "held_idle_0.webp",
-    "fist": "fist_idle_0.webp"
+    "fist": "fist_idle_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_idle_0.webp",
+      "w": 262,
+      "h": 285,
+      "dx": 33.0,
+      "b": "ab_diamond_pick_idle_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_idle_0.webp",
+      "w": 239,
+      "h": 285,
+      "dx": 22.0,
+      "b": "ab_bo_staff_idle_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_idle_0.webp",
+      "w": 222,
+      "h": 285,
+      "dx": 15.0,
+      "b": "ab_hockey_stick_idle_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_idle_0.webp",
+     "w": 239,
+     "h": 285,
+     "dx": 19.4,
+     "t": "swt_idle_0.webp",
+     "b": "swb_idle_0.webp"
+    }
    },
    {
     "f": "idle_1.webp",
@@ -26,7 +57,38 @@
      0.787
     ],
     "held": "held_idle_1.webp",
-    "fist": "fist_idle_1.webp"
+    "fist": "fist_idle_1.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_idle_1.webp",
+      "w": 263,
+      "h": 285,
+      "dx": 34.0,
+      "b": "ab_diamond_pick_idle_1.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_idle_1.webp",
+      "w": 242,
+      "h": 286,
+      "dx": 23.0,
+      "b": "ab_bo_staff_idle_1.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_idle_1.webp",
+      "w": 223,
+      "h": 285,
+      "dx": 15.0,
+      "b": "ab_hockey_stick_idle_1.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_idle_1.webp",
+     "w": 240,
+     "h": 285,
+     "dx": 19.6,
+     "t": "swt_idle_1.webp",
+     "b": "swb_idle_1.webp"
+    }
    },
    {
     "f": "idle_2.webp",
@@ -39,7 +101,38 @@
      0.786
     ],
     "held": "held_idle_2.webp",
-    "fist": "fist_idle_2.webp"
+    "fist": "fist_idle_2.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_idle_2.webp",
+      "w": 264,
+      "h": 285,
+      "dx": 34.0,
+      "b": "ab_diamond_pick_idle_2.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_idle_2.webp",
+      "w": 242,
+      "h": 285,
+      "dx": 24.0,
+      "b": "ab_bo_staff_idle_2.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_idle_2.webp",
+      "w": 225,
+      "h": 285,
+      "dx": 15.0,
+      "b": "ab_hockey_stick_idle_2.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_idle_2.webp",
+     "w": 242,
+     "h": 285,
+     "dx": 21.0,
+     "t": "swt_idle_2.webp",
+     "b": "swb_idle_2.webp"
+    }
    }
   ],
   "victory": [
@@ -54,7 +147,38 @@
      0.787
     ],
     "held": "held_victory_0.webp",
-    "fist": "fist_victory_0.webp"
+    "fist": "fist_victory_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_victory_0.webp",
+      "w": 242,
+      "h": 307,
+      "dx": 6.0,
+      "b": "ab_diamond_pick_victory_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_victory_0.webp",
+      "w": 269,
+      "h": 315,
+      "dx": 20.0,
+      "b": "ab_bo_staff_victory_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_victory_0.webp",
+      "w": 272,
+      "h": 290,
+      "dx": 21.0,
+      "b": "ab_hockey_stick_victory_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_victory_0.webp",
+     "w": 246,
+     "h": 314,
+     "dx": 7.2,
+     "t": "swt_victory_0.webp",
+     "b": "swb_victory_0.webp"
+    }
    }
   ],
   "run": [
@@ -69,7 +193,38 @@
      0.781
     ],
     "held": "held_run_0.webp",
-    "fist": "fist_run_0.webp"
+    "fist": "fist_run_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_run_0.webp",
+      "w": 247,
+      "h": 281,
+      "dx": 29.0,
+      "b": "ab_diamond_pick_run_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_run_0.webp",
+      "w": 233,
+      "h": 281,
+      "dx": 22.0,
+      "b": "ab_bo_staff_run_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_run_0.webp",
+      "w": 222,
+      "h": 283,
+      "dx": 18.0,
+      "b": "ab_hockey_stick_run_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_run_0.webp",
+     "w": 234,
+     "h": 280,
+     "dx": 20.3,
+     "t": "swt_run_0.webp",
+     "b": "swb_run_0.webp"
+    }
    },
    {
     "f": "run_1.webp",
@@ -82,7 +237,38 @@
      0.741
     ],
     "held": "held_run_1.webp",
-    "fist": "fist_run_1.webp"
+    "fist": "fist_run_1.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_run_1.webp",
+      "w": 285,
+      "h": 279,
+      "dx": 25.0,
+      "b": "ab_diamond_pick_run_1.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_run_1.webp",
+      "w": 278,
+      "h": 280,
+      "dx": 19.0,
+      "b": "ab_bo_staff_run_1.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_run_1.webp",
+      "w": 260,
+      "h": 275,
+      "dx": 14.0,
+      "b": "ab_hockey_stick_run_1.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_run_1.webp",
+     "w": 280,
+     "h": 279,
+     "dx": 19.1,
+     "t": "swt_run_1.webp",
+     "b": "swb_run_1.webp"
+    }
    },
    {
     "f": "run_2.webp",
@@ -95,7 +281,38 @@
      0.745
     ],
     "held": "held_run_2.webp",
-    "fist": "fist_run_2.webp"
+    "fist": "fist_run_2.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_run_2.webp",
+      "w": 257,
+      "h": 280,
+      "dx": 25.0,
+      "b": "ab_diamond_pick_run_2.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_run_2.webp",
+      "w": 251,
+      "h": 280,
+      "dx": 22.0,
+      "b": "ab_bo_staff_run_2.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_run_2.webp",
+      "w": 232,
+      "h": 285,
+      "dx": 15.0,
+      "b": "ab_hockey_stick_run_2.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_run_2.webp",
+     "w": 248,
+     "h": 280,
+     "dx": 19.0,
+     "t": "swt_run_2.webp",
+     "b": "swb_run_2.webp"
+    }
    },
    {
     "f": "run_3.webp",
@@ -108,7 +325,38 @@
      0.738
     ],
     "held": "held_run_3.webp",
-    "fist": "fist_run_3.webp"
+    "fist": "fist_run_3.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_run_3.webp",
+      "w": 258,
+      "h": 279,
+      "dx": 28.0,
+      "b": "ab_diamond_pick_run_3.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_run_3.webp",
+      "w": 252,
+      "h": 279,
+      "dx": 25.0,
+      "b": "ab_bo_staff_run_3.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_run_3.webp",
+      "w": 233,
+      "h": 275,
+      "dx": 17.0,
+      "b": "ab_hockey_stick_run_3.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_run_3.webp",
+     "w": 251,
+     "h": 279,
+     "dx": 21.1,
+     "t": "swt_run_3.webp",
+     "b": "swb_run_3.webp"
+    }
    }
   ],
   "punch": [
@@ -123,7 +371,38 @@
      0.771
     ],
     "held": "held_punch_0.webp",
-    "fist": "fist_punch_0.webp"
+    "fist": "fist_punch_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_punch_0.webp",
+      "w": 317,
+      "h": 281,
+      "dx": 53.0,
+      "b": "ab_diamond_pick_punch_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_punch_0.webp",
+      "w": 328,
+      "h": 281,
+      "dx": 58.0,
+      "b": "ab_bo_staff_punch_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_punch_0.webp",
+      "w": 307,
+      "h": 277,
+      "dx": 49.0,
+      "b": "ab_hockey_stick_punch_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_punch_0.webp",
+     "w": 333,
+     "h": 281,
+     "dx": 61.2,
+     "t": "swt_punch_0.webp",
+     "b": "swb_punch_0.webp"
+    }
    }
   ],
   "kick": [
@@ -138,7 +417,38 @@
      0.76
     ],
     "held": "held_kick_0.webp",
-    "fist": "fist_kick_0.webp"
+    "fist": "fist_kick_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_kick_0.webp",
+      "w": 309,
+      "h": 269,
+      "dx": 27.0,
+      "b": "ab_diamond_pick_kick_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_kick_0.webp",
+      "w": 282,
+      "h": 269,
+      "dx": 9.0,
+      "b": "ab_bo_staff_kick_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_kick_0.webp",
+      "w": 277,
+      "h": 276,
+      "dx": 11.0,
+      "b": "ab_hockey_stick_kick_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_kick_0.webp",
+     "w": 286,
+     "h": 269,
+     "dx": 0.2,
+     "t": "swt_kick_0.webp",
+     "b": "swb_kick_0.webp"
+    }
    }
   ],
   "hurt": [
@@ -153,7 +463,38 @@
      0.747
     ],
     "held": "held_hurt_0.webp",
-    "fist": "fist_hurt_0.webp"
+    "fist": "fist_hurt_0.webp",
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_hurt_0.webp",
+      "w": 232,
+      "h": 281,
+      "dx": -8.0,
+      "b": "ab_diamond_pick_hurt_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_hurt_0.webp",
+      "w": 258,
+      "h": 285,
+      "dx": -21.0,
+      "b": "ab_bo_staff_hurt_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_hurt_0.webp",
+      "w": 247,
+      "h": 281,
+      "dx": -17.0,
+      "b": "ab_hockey_stick_hurt_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_hurt_0.webp",
+     "w": 229,
+     "h": 273,
+     "dx": -6.8,
+     "t": "swt_hurt_0.webp",
+     "b": "swb_hurt_0.webp"
+    }
    }
   ],
   "down": [
@@ -166,7 +507,38 @@
     "beltC": [
      0.315,
      0.806
-    ]
+    ],
+    "arm": {
+     "diamond_pick": {
+      "f": "a_diamond_pick_down_0.webp",
+      "w": 290,
+      "h": 207,
+      "dx": 0.0,
+      "b": "ab_diamond_pick_down_0.webp"
+     },
+     "bo_staff": {
+      "f": "a_bo_staff_down_0.webp",
+      "w": 290,
+      "h": 196,
+      "dx": 0.0,
+      "b": "ab_bo_staff_down_0.webp"
+     },
+     "hockey_stick": {
+      "f": "a_hockey_stick_down_0.webp",
+      "w": 295,
+      "h": 199,
+      "dx": 0.0,
+      "b": "ab_hockey_stick_down_0.webp"
+     }
+    },
+    "sw": {
+     "f": "sw_down_0.webp",
+     "w": 289,
+     "h": 204,
+     "dx": 0.0,
+     "t": "swt_down_0.webp",
+     "b": "swb_down_0.webp"
+    }
    }
   ]
  }
