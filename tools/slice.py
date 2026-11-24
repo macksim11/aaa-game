@@ -38,12 +38,19 @@ def remove_bg(im, key):
                 ny, nx = y + dy, x + dx
                 if 0 <= ny < h and 0 <= nx < w and bgmask[ny, nx] and not seen[ny, nx]:
                     seen[ny, nx] = True; q.append((ny, nx))
-        # also clear large enclosed pure-white pockets (gaps between arms/legs)
+        # Enclosed near-white pockets are KEPT by default: they are usually white clothing, fur, teeth or a beard.
+        # (Clearing every pocket > 900 px made white tops, cat chests and beards see-through: v16 "accidental
+        # transparency" bug.) Real gaps between arms/legs are listed so they can be cleared on purpose with
+        # --clear-pockets (all) or --clear-pocket x,y (the pocket containing that sheet pixel; repeatable).
         from scipy import ndimage  # noqa
         lab, n = ndimage.label(bgmask & ~seen)
         sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
+        picks = [tuple(int(v) for v in sys.argv[k + 1].split(',')) for k, a in enumerate(sys.argv) if a == '--clear-pocket']
         for i, s in enumerate(sizes, 1):
-            if s > 900 and '--no-pockets' not in sys.argv: seen |= (lab == i)
+            if s <= 900: continue
+            m = lab == i; ys, xs = np.nonzero(m); cx, cy = int(xs.mean()), int(ys.mean())
+            if '--clear-pockets' in sys.argv or any(m[py, px] for px, py in picks): seen |= m; print(f'pocket cleared at {cx},{cy} ({int(s)} px)', file=sys.stderr)
+            else: print(f'NOTE white pocket kept at {cx},{cy} ({int(s)} px): if it is a gap between limbs, pass --clear-pocket {xs[0]},{ys[0]}', file=sys.stderr)
         bg = seen
     else:
         bg = bgmask
